@@ -1,4 +1,5 @@
 require("dotenv").config();
+const pc = require('picocolors')
 
 const _config = require('./config/env')
 const app = require("./app");
@@ -11,5 +12,5 @@ const PORT = _config.port || 5000;
 connectionDB()
 
 app.listen(PORT, () => {
-    console.log(`Server Running On Port ${PORT}`);
+    console.log(pc.magenta(`Server Running On Port: `) + pc.bold(pc.yellow(PORT)));
 });

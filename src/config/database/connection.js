@@ -1,6 +1,7 @@
 
 const mongoose = require('mongoose')
-const _config = require('../env')
+const _config = require('../env.js')
+const pc = require('picocolors')
 
 
 /**
@@ -10,14 +11,10 @@ const _config = require('../env')
  */
 const connectionDB = async () => {
   try {
-    if(!_config.mongoURI){
-      throw new Error("fail to find uri");
-    }
-
     const connection = await mongoose.connect(_config.mongoURI)
-    console.log(`the connection to Database is successful, Atlas: ${connection.connection.host}`)
+    console.log(pc.green(pc.bold(`the connection to Database is successful, Atlas: `)) + pc.cyan(connection.connection.host))
   } catch (error) {
-    console.log(`connection to the Database is faild, Error: ${error.message}`)
+    console.error(pc.red(pc.bold(`connection to the Database is failed, Error: ${error.message}`)))
     // To stop the Server if connection faild
     process.exit(1)
   }
@@ -25,12 +22,12 @@ const connectionDB = async () => {
 
 // To watch and log the events on the Server during runtime
 mongoose.connection.on('disconnected', () =>{
-  console.log('Database Warning: connection is lost')
+  console.log(pc.yellow('Database Warning: connection is lost'))
 })
 
 // Catch and log any database errors that happen after a successful connection
 mongoose.connection.on('error', (error) =>{
-  console.error(`Database Error: ${error.message}`)
+  console.error(pc.red(`Database Error: ${error.message}`))
 })
 
 module.exports = connectionDB
