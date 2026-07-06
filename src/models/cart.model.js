@@ -1,32 +1,30 @@
 import mongoose from "mongoose";
+
 const cartItemSchema = new mongoose.Schema({
-product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true
-},
-name: {
-    type: String,
-    required: true
-},
-
-image: {
-    type: String,
-    required: true
-},
-
-price: {
-    type: Number,
-    required: true,
-    min: 0
-},
-
-quantity: {
-    type: Number,
-    required: true,
-    default: 1,
-    min: 1
-}
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    image: {
+        type: String,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    quantity: {
+        type: Number,
+        required: true,
+        default: 1,
+        min: 1
+    }
 });
 
 const couponSchema = new mongoose.Schema({
@@ -120,5 +118,4 @@ cartSchema.virtual('itemCount').get(function() {
 });
 
 const Cart = mongoose.model('Cart', cartSchema);
-
-export default Cart;
+module.exports = Cart;
