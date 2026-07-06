@@ -13,7 +13,7 @@ if (!process.env.MONGO_URI) {
 const _config = {
   PORT: parseInt(process.env.PORT) || 5000,
   NODE_ENV: process.env.NODE_ENV,
-  MONGO_URI: process.env.MONGO_URI,
+  MONGO_URL: process.env.MONGO_URI,
 }
 
 module.exports = _config

@@ -1,6 +1,6 @@
 
 const mongoose = require('mongoose')
-const _config = require('../env.js')
+const _config = require('../config/env')
 const pc = require('picocolors')
 
 
@@ -11,7 +11,7 @@ const pc = require('picocolors')
  */
 const connectionDB = async () => {
   try {
-    const connection = await mongoose.connect(_config.mongoURI)
+    const connection = await mongoose.connect(_config.MONGO_URL)
     console.log(pc.green(pc.bold(`the connection to Database is successful, Atlas: `)) + pc.cyan(connection.connection.host))
   } catch (error) {
     console.error(pc.red(pc.bold(`connection to the Database is failed, Error: ${error.message}`)))
