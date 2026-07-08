@@ -23,14 +23,10 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-<<<<<<< HEAD
     "joi": "^18.2.3",
-=======
-
->>>>>>> a4bb6d141c0a12ee3148c828abc81e24bea0c6f5
     "mongoose": "^9.7.3",
-    "picocolors": "^1.1.1"
-
+    "picocolors": "^1.1.1",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
