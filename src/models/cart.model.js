@@ -8,24 +8,24 @@ const cartItemSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true
+        required: [true, "Name is required"]
     },
     image: {
         type: String,
-        required: true
+        required: [true, "Image is required"]
     },
     price: {
         type: Number,
-        required: true,
+        required: [true, "Price is required"],
         min: 0
     },
     quantity: {
         type: Number,
-        required: true,
+        required:[true, "Quantity is required"],
         default: 1,
         min: 1
     }
-});
+}, { _id: false });
 
 const couponSchema = new mongoose.Schema({
     code: {
@@ -49,7 +49,7 @@ const cartSchema = new mongoose.Schema(
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
+            required: [true, "User is required"],
             unique: true
         },
         items: {
