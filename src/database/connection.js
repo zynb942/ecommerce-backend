@@ -21,12 +21,12 @@ const connectionDB = async () => {
 }
 
 // To watch and log the events on the Server during runtime
-mongoose.connection.on('disconnected', () =>{
+mongoose.connection.on('disconnected', () => {
   console.log(pc.yellow('Database Warning: connection is lost'))
 })
 
 // Catch and log any database errors that happen after a successful connection
-mongoose.connection.on('error', (error) =>{
+mongoose.connection.on('error', (error) => {
   console.error(pc.red(`Database Error: ${error.message}`))
 })
 

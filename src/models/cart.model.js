@@ -21,7 +21,7 @@ const cartItemSchema = new mongoose.Schema({
     },
     quantity: {
         type: Number,
-        required:[true, "Quantity is required"],
+        required: [true, "Quantity is required"],
         default: 1,
         min: 1
     }
@@ -71,9 +71,9 @@ const cartSchema = new mongoose.Schema(
 // =============================================
 // 1. Virtual: subtotal
 // =============================================
-cartSchema.virtual('subtotal').get(function() {
+cartSchema.virtual('subtotal').get(function () {
     if (!this.items || this.items.length === 0) return 0;
-    
+
     return this.items.reduce((sum, item) => {
         return sum + (item.price * item.quantity);
     }, 0);
@@ -82,36 +82,36 @@ cartSchema.virtual('subtotal').get(function() {
 // =============================================
 // 2. Virtual: discountAmount
 // =============================================
-cartSchema.virtual('discountAmount').get(function() {
+cartSchema.virtual('discountAmount').get(function () {
     if (!this.coupon || !this.coupon.code) return 0;
-    
+
     const subtotal = this.subtotal;
     if (subtotal === 0) return 0;
-    
+
     const { discountType, discountValue } = this.coupon;
-    
+
     if (discountType === 'percentage') {
         return (subtotal * discountValue) / 100;
     } else if (discountType === 'fixed') {
         return Math.min(discountValue, subtotal);
     }
-    
+
     return 0;
 });
 
 // =============================================
 // 3. Virtual: total
 // =============================================
-cartSchema.virtual('total').get(function() {
+cartSchema.virtual('total').get(function () {
     return Math.max(0, this.subtotal - this.discountAmount);
 });
 
 // =============================================
 // 4. Virtual: itemCount
 // =============================================
-cartSchema.virtual('itemCount').get(function() {
+cartSchema.virtual('itemCount').get(function () {
     if (!this.items || this.items.length === 0) return 0;
-    
+
     return this.items.reduce((sum, item) => {
         return sum + item.quantity;
     }, 0);

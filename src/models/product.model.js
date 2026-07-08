@@ -1,19 +1,40 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require("mongoose");
+const slugify = require("slugify");
+
+
+const imageSchema = new mongoose.Schema(
+  {
+    public_id: {
+      type: String,
+      required: true,
+    },
+
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 
 const reviewSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+      ref: "User",
+      required: [true, "User is required"]
     },
+
     rating: {
       type: Number,
       required: true,
       min: 1,
       max: 5,
     },
+
     comment: {
       type: String,
       trim: true,
@@ -21,139 +42,181 @@ const reviewSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    _id: false,
   }
 );
+
 
 const productSchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
-      required: [true, 'اسم المنتج مطلوب'],
+      required: [true, "Product name is required"],
       trim: true,
-      minlength: [3, 'اسم المنتج قصير جداً'],
-      maxlength: [100, 'اسم المنتج طويل جداً']
+      maxlength: [200, "Product name cannot exceed 200 characters"],
     },
     slug: {
       type: String,
-      lowercase: true,
-      unique: true
+      unique: true,
+    },
+    shortDescription: {
+      type: String,
+      required: [true, "Short description is required"],
+      trim: true,
+      maxlength: [500, "Short description cannot exceed 500 characters"],
     },
     description: {
       type: String,
-      required: [true, 'وصف المنتج مطلوب'],
-      minlength: [20, 'وصف المنتج يجب أن يكون أكثر من 20 حرف']
-    },
-    quantity: {
-        type: Number,
-        required: [true, 'كمية المنتج مطلوبة'],
-        min: [0, 'الكمية لا يمكن أن تكون أقل من صفر']
-    },
-    sold: {
-        type: Number,
-        default: 0,
-        min: [0, 'عدد المنتجات المباعة لا يمكن أن يكون أقل من صفر']
+      required: [true, "Description is required"],
+      trim: true,
     },
     price: {
       type: Number,
-      required: [true, 'سعر المنتج مطلوب'],
-      max: [200000, 'السعر مبالغ فيه']
+      required: [true, "Price is required"],
+      min: [0, "Price cannot be negative"],
     },
-    priceAfterDiscount: {
+    discountPrice: {
       type: Number,
+      default: 0,
+      min: 0,
       validate: {
-            validator: function (value) {
-            return value == null || value <= this.price;
-         },
-    message: 'Price after discount must be less than or equal to the original price',
-  },
+        validator: function (value) {
+          return value <= this.price;
+        },
+        message: "Discount price cannot exceed product price",
+      },
     },
-    colors: [String],
-    imageCover: {
+    stock: {
+      type: Number,
+      required: [true, "Stock is required"],
+      min: [0, "Stock cannot be negative"],
+      default: 0,
+    },
+    sku: {
       type: String,
-      required: [true, 'الصورة الأساسية للمنتج مطلوبة']
+      unique: true,
+      trim: true,
     },
-    images: [String],
-    
-    
+    images: {
+      type: [imageSchema],
+      required: [true, "At least one product image is required"],
+      validate: {
+        validator: function (images) {
+          return images.length >= 1;
+        },
+        message: "At least one product image is required",
+      },
+    },
     category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      required: [true, 'المنتج يجب أن ينتمي لقسم رئيسي']
+      type: String,
+      required: [true, "Category is required"],
+      lowercase: true,
+      trim: true,
     },
-    subcategories: [
+    subcategory: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    brand: {
+      type: String,
+      trim: true,
+    },
+    tags: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubCategory'
+        type: String,
+        trim: true,
       },
     ],
-    brand: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Brand'
-    },
-
     reviews: [reviewSchema],
 
-    
-    ratingsAverage: {
-        type: Number,
-        min: 0,
-        max: 5,
-        default: 0
-    },
-    ratingsQuantity: {
+    averageRating: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0,
+      max: 5,
     },
 
-    
-    specifications: {
-      weight: String,
-      dimensions: String,
-      material: String
-    }
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
+    featured: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Product creator is required"],
+    },
   },
-  { 
+  {
     timestamps: true,
-    
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
   }
 );
 
 
-productSchema.pre('save', function (next) {
-  
-  if (this.isModified('title')) {
-    this.slug = slugify(this.title, {  lower: true });
+productSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, {
+      lower: true,
+      strict: true,
+    });
   }
-  this.calculateRatings();
+
   next();
 });
 
-  productSchema.methods.calculateRatings = function () {
-  this.ratingsQuantity = this.reviews.length;
-
-  if (this.reviews.length === 0) {
-    this.ratingsAverage = 0;
+productSchema.methods.calcAverageRating = function () {
+  if (!this.reviews || this.reviews.length === 0) {
+    this.averageRating = 0;
+    this.numReviews = 0;
     return;
   }
 
-  const total = this.reviews.reduce((sum, review) => {
-    return sum + review.rating;
-  }, 0);
+  const totalRating = this.reviews.reduce(
+    (sum, review) => sum + review.rating,
+    0
+  );
 
-  this.ratingsAverage =
-  Math.round((total / this.reviews.length) * 100) / 100;
+  this.averageRating = Number(
+    (totalRating / this.reviews.length).toFixed(1)
+  );
+
+  this.numReviews = this.reviews.length;
 };
 
-productSchema.index({ price: 1, ratingsAverage: -1 }); 
 
-productSchema.index({ slug: 1 });
+productSchema.index({
+  name: "text",
+  description: "text",
+  brand: "text",
+});
 
-productSchema.index({ title: 'text', description: 'text' });
+productSchema.index({
+  category: 1,
+});
 
-productSchema.index({ category: 1 });
-productSchema.index({ brand: 1 });
+productSchema.index({
+  brand: 1,
+});
 
-module.exports = mongoose.model('Product', productSchema);
+productSchema.index({
+  price: 1,
+});
+
+productSchema.index({
+  averageRating: -1,
+});
+
+productSchema.index({
+  createdAt: -1,
+});
+
+const Product = mongoose.model("Product", productSchema);
+
+module.exports = Product;

@@ -31,8 +31,8 @@ const otpSchema = new mongoose.Schema(
 
 
 otpSchema.index(
-  { expiresAt: 1 },
-  { expireAfterSeconds: 0 }
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0 }
 );
 
 
