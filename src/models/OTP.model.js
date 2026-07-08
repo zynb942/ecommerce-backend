@@ -1,20 +1,41 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const otpSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
+
+const otpSchema = new mongoose.Schema(
+    {
+        email: {
+            type: String,
+            required: [true, "Email is required"],
+            lowercase: true,
+            trim: true,
+        },
+        otp: {
+            type: String,
+            required: [true, "OTP is required"],
+        },
+        expiresAt: {
+            type: Date,
+            required: [true, "Expiration date is required"],
+        },
+        userData: {
+            type: Object,
+            default: null
+        },
+
+
     },
-    otp: {
-        type: String,
-        required: true,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-        // هذا الحقل يجعل الـ OTP ينتهي تلقائياً بعد 5 دقائق (300 ثانية)
-        expires: 300 
+    {
+        timestamps: true,
     }
-});
+);
 
-module.exports = mongoose.model('OTP', otpSchema);
+
+otpSchema.index(
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 }
+);
+
+
+const OTP = mongoose.model("OTP", otpSchema);
+
+module.exports = OTP;
