@@ -4,7 +4,7 @@
  * @param {number} statusCode HTTP status code to send
  * @param {string} message response message
  * @param {object} data Express JSON response
- * @returns 
+ * @returns { object } Express response object
  */
 const sendResponse = (response, statusCode, message, data = null) => {
   return response.status(statusCode).json({
