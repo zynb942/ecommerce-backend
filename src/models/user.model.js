@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs")
 
-
+// Sub-schema for user addresses
 const addressSchema = new mongoose.Schema(
     {
         fullName: String,
@@ -16,7 +16,7 @@ const addressSchema = new mongoose.Schema(
     }
 );
 
-
+// main user schema definition
 const userSchema = new mongoose.Schema(
     {
         username: {
@@ -75,26 +75,22 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-
+// Mongoose pre-save middleware to hash the password before saving to the database
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
         return next();
     }
-
     this.password = await bcrypt.hash(this.password, 10);
-
-    next();
-
 });
 
 
+// method to check and compare input password with the hashed password in the database
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
 
-
-
+// Create the User model from the defined schema
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
