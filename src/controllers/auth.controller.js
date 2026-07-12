@@ -1,9 +1,9 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 
-const User = require("../models/User");
-const OTP = require("../models/OTP");
-const ApiError = require("../utils/ApiError");
+const User = require("../models/user.model.js");
+const OTP = require("../models/OTP.model.js");
+const ApiError = require("../utils/apiError.js");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");

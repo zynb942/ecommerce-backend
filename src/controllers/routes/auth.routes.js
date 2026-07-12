@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const { sendRegisterOTP } = require("../controllers/auth.controller");
-const validate = require("../middleware/validation.middleware");
-const { registerSchema } = require("../validation/auth.validation");
+const validate = require("../middlewares/validation.middlewares");
+const { registerSchema } = require("../validation/user.validation");
 
 router.post(
   "/register/send-otp",
