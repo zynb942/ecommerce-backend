@@ -16,8 +16,12 @@ const _config = {
   MONGO_URL: process.env.MONGO_URI,
   EMAIL_HOST: process.env.EMAIL_HOST || "smtp.gmail.com",
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT) || 587,
-  EMAIL_USER: process.env.EMAIL_USER, 
-  EMAIL_PASS: process.env.EMAIL_PASS  
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS,
+  JWT_SECRET:process.env.JWT_SECRET,
+  JWT_EXPIRE: process.env.JWT_EXPIRE
+
+
 }
 
 module.exports = _config
