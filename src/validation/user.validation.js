@@ -56,12 +56,12 @@ const verifyOtpSchema = Joi.object({
     }),
 
   otp: Joi.string()
-    .length(6) 
+    .pattern(/^\d{6}$/) 
     .required()
     .messages({
       "string.base": "OTP must be a string",
       "string.empty": "OTP is required",
-      "string.length": "OTP must be exactly 6 characters",
+      "string.pattern.base": "OTP must be exactly 6 digits", 
       "any.required": "OTP is required",
     }),
 });
