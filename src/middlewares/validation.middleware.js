@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const ApiError = require("../utils/apiError");
 
 
 /**
@@ -13,11 +14,14 @@ const validate = (schema) => {
     });
 
     if (error) {
-      return response.status(400).json({
-        errors: error.details.map(err => err.message),
-      });
+      return next(
+        new ApiError(
+          400,
+          error.details.map((err) => err.message).join(', ')
+        )
+      );
     }
-    next();
+    next()
   };
 };
 

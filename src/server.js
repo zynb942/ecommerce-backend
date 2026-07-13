@@ -1,5 +1,7 @@
-require("dotenv").config();
 const pc = require('picocolors')
+
+
+require("dotenv").config();
 
 const _config = require('./config/env')
 const app = require("./app");

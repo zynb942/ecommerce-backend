@@ -1,6 +1,6 @@
 /**
  * Helper function that catches async errors in route handlers
- * @param { Function } fn async controller function 
+ * @param { Function } controllerFunc async controller function 
  * @returns { Function } as Express middleware function
  */
 const asyncHandler = (controllerFunc) => {
