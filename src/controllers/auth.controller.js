@@ -7,7 +7,7 @@ const ApiError = require("../utils/apiError.js");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");
-
+const _config = require("../config/env");
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
 const sendRegisterOTP = asyncHandler(async (req, res, next) => {
@@ -79,22 +79,18 @@ const login = asyncHandler(async (req, res) => {
   const token = jwt.sign(
     {
       id: user._id,
-      role: user.role,
+      
     },
-    process.env.JWT_SECRET,
+     _config.JWT_SECRET, 
     {
-      expiresIn: "7d",
+      expiresIn: _config.JWT_EXPIRE,
     }
   );
-
+const userData = user.toObject();
+  delete userData.password;
   return sendResponse(res, 200, "Login successful", {
     token,
-    user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    },
+    user: userData,
   });
 });
 module.exports = { sendRegisterOTP , login};
