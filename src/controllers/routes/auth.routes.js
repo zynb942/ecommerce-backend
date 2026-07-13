@@ -12,7 +12,7 @@ router.post(
 );
 
 router.post(
-  "/verify-otp",
+  "/register/verify-otp",
   validate(verifyOtpSchema),
   verifyOTP
 );
