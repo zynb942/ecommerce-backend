@@ -70,16 +70,28 @@ const verifyOTP = asyncHandler(async (req, res, next) => {
     return next(new ApiError(404, "Invalid or expired OTP"));
   }
 
+  if (otpDoc.expiresAt < new Date()) {
+        await OTP.deleteMany({ email }); 
+        throw new ApiError(400, "OTP has expired");
+    }
+
+    if (!otpDoc.userData) {
+        throw new ApiError(400, "Invalid OTP data");
+    }
+
   const isMatch = await bcrypt.compare(otp, otpDoc.otp);
 
   if (!isMatch) {
     return next(new ApiError(400, "Invalid OTP code"));
   }
 
-  const user = await User.create(otpDoc.userData);
+  const user = await User.create({
+  ...otpDoc.userData,
+  isVerified: true,
+});
 
-  await OTP.deleteOne({ email });
-
+  await OTP.deleteMany({ email });
+  
   return sendResponse(res, 201, "User registered and verified successfully", { user });
 });
 
