@@ -55,6 +55,7 @@ const verifyOtpSchema = Joi.object({
       "any.required": "Email is required",
     }),
 
+
   otp: Joi.string()
     .pattern(/^\d{6}$/) 
     .required()
@@ -70,4 +71,6 @@ module.exports = {
   userSchema,
   registerSchema,
   verifyOtpSchema, 
+  forgotPasswordSchema,
 };
+

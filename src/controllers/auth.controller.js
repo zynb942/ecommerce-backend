@@ -54,11 +54,44 @@ const sendRegisterOTP = asyncHandler(async (req, res, next) => {
     throw error;
   }
 
+  return sendResponse(res, 200, "OTP sent to your email successfully");
+});
+const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const otp = generateOTP();
+  const hashedOTP = await bcrypt.hash(otp, 10);
+  await OTP.deleteMany({ email });
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  let otpDoc;
+
+  try {
+    otpDoc = await OTP.create({
+      email,
+      otp: hashedOTP,
+      expiresAt,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: "Reset Password - OTP Code",
+      html: `<h2>Your password reset code is: ${otp}</h2><p>This code expires in 10 minutes.</p>`,
+    });
+  } catch (error) {
+    if (otpDoc) {
+      await OTP.findByIdAndDelete(otpDoc._id);
+    }
+
+    throw error;
+  }
   return sendResponse(
-    res,
-    200,
-    "OTP sent to your email successfully"
-  );
+  res,
+  200,
+  "OTP sent to your email successfully"
+);
 });
 
 const verifyOTP = asyncHandler(async (req, res, next) => {
@@ -97,5 +130,6 @@ const verifyOTP = asyncHandler(async (req, res, next) => {
 
 module.exports = { 
   sendRegisterOTP,
-  verifyOTP 
+  verifyOTP,
+  forgotPassword
 };
