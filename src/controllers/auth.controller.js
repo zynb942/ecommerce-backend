@@ -61,4 +61,29 @@ const sendRegisterOTP = asyncHandler(async (req, res, next) => {
   );
 });
 
-module.exports = { sendRegisterOTP };
+const verifyOTP = asyncHandler(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  const otpDoc = await OTP.findOne({ email });
+
+  if (!otpDoc) {
+    return next(new ApiError(404, "Invalid or expired OTP"));
+  }
+
+  const isMatch = await bcrypt.compare(otp, otpDoc.otp);
+
+  if (!isMatch) {
+    return next(new ApiError(400, "Invalid OTP code"));
+  }
+
+  const user = await User.create(otpDoc.userData);
+
+  await OTP.deleteOne({ email });
+
+  return sendResponse(res, 201, "User registered and verified successfully", { user });
+});
+
+module.exports = { 
+  sendRegisterOTP,
+  verifyOTP 
+};

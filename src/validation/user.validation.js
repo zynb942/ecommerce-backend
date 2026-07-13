@@ -42,7 +42,32 @@ const registerSchema = Joi.object({
     }),
 });
 
+const verifyOtpSchema = Joi.object({
+  email: Joi.string()
+    .trim()
+    .lowercase()
+    .email()
+    .required()
+    .messages({
+      "string.base": "Email must be a string",
+      "string.empty": "Email is required",
+      "string.email": "Email must be a valid email",
+      "any.required": "Email is required",
+    }),
+
+  otp: Joi.string()
+    .length(6) 
+    .required()
+    .messages({
+      "string.base": "OTP must be a string",
+      "string.empty": "OTP is required",
+      "string.length": "OTP must be exactly 6 characters",
+      "any.required": "OTP is required",
+    }),
+});
+
 module.exports = {
   userSchema,
   registerSchema,
+  verifyOtpSchema, 
 };
