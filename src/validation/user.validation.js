@@ -81,10 +81,33 @@ const forgotPasswordSchema = Joi.object({
     }),
 });
 
+const changeRoleSchema = Joi.object({
+  userId: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .required()
+    .messages({
+      "string.base": "User ID must be a string",
+      "string.empty": "User ID is required",
+      "string.pattern.base": "Invalid User ID format (must be a valid MongoDB ObjectId)",
+      "any.required": "User ID is required",
+    }),
+
+  role: Joi.string()
+    .valid("admin", "customer")
+    .required()
+    .messages({
+      "string.base": "Role must be a string",
+      "string.empty": "Role is required",
+      "any.only": "Role must be either admin or customer",
+      "any.required": "Role is required",
+    }),
+});
+
 module.exports = {
   userSchema,
   registerSchema,
   verifyOtpSchema, 
   forgotPasswordSchema,
+  changeRoleSchema
 };
 
