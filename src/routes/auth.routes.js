@@ -12,6 +12,7 @@ const validate = require("../middlewares/validation.middleware");
 const {
   protect,
   authorize,
+  allowTo,
 } = require("../middlewares/auth.middleware");
 
 const {
@@ -19,23 +20,14 @@ const {
   forgotPasswordSchema,
 } = require("../validation/user.validation");
 
-router.post(
-  "/register/send-otp",
-  validate(registerSchema),
-  sendRegisterOTP
-);
+router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
 
 router.post(
   "/forgot-password/send-otp",
   validate(forgotPasswordSchema),
-  forgotPassword
+  forgotPassword,
 );
 
-router.get(
-  "/admin-test",
-  protect,
-  authorize("admin"),
-  adminTest
-);
+router.get("/admin-test", protect, allowTo("admin"), adminTest);
 
 module.exports = router;
