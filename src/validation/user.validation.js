@@ -42,7 +42,34 @@ const registerSchema = Joi.object({
     }),
 });
 
-const loginSchema = Joi.object({
+  
+  const loginSchema = Joi.object({
+    email: Joi.string()
+        .trim()
+        .lowercase()
+        .email()
+        .max(255)
+        .required()
+        .messages({
+            "string.base": "Email must be a string",
+            "string.empty": "Email is required",
+            "string.email": "Please enter a valid email address",
+            "string.max": "Email must not exceed 255 characters",
+            "any.required": "Email is required",
+        }),
+
+    password: Joi.string()
+        .required()
+        .messages({
+            "string.base": "Password must be a string",
+            "string.empty": "Password is required",
+            "any.required": "Password is required",
+        }),
+});
+  
+  
+  
+const verifyOtpSchema = Joi.object({
   email: Joi.string()
     .trim()
     .lowercase()
@@ -55,13 +82,51 @@ const loginSchema = Joi.object({
       "any.required": "Email is required",
     }),
 
-  password: Joi.string()
-   .min(8)  
-  .required()
+
+  otp: Joi.string()
+    .pattern(/^\d{6}$/) 
+    .required()
     .messages({
-      "string.base": "Password must be a string",
-      "string.empty": "Password is required",
-      "any.required": "Password is required",
+      "string.base": "OTP must be a string",
+      "string.empty": "OTP is required",
+      "string.pattern.base": "OTP must be exactly 6 digits", 
+      "any.required": "OTP is required",
+    }),
+});
+
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string()
+    .trim()
+    .lowercase()
+    .email()
+    .required()
+    .messages({
+      "string.base": "Email must be a string",
+      "string.empty": "Email is required",
+      "string.email": "Email must be a valid email",
+      "any.required": "Email is required",
+    }),
+});
+
+const changeRoleSchema = Joi.object({
+  userId: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .required()
+    .messages({
+      "string.base": "User ID must be a string",
+      "string.empty": "User ID is required",
+      "string.pattern.base": "Invalid User ID format (must be a valid MongoDB ObjectId)",
+      "any.required": "User ID is required",
+    }),
+
+  role: Joi.string()
+    .valid("admin", "customer")
+    .required()
+    .messages({
+      "string.base": "Role must be a string",
+      "string.empty": "Role is required",
+      "any.only": "Role must be either admin or customer",
+      "any.required": "Role is required",
     }),
 });
 
@@ -69,4 +134,8 @@ module.exports = {
   userSchema,
   registerSchema,
   loginSchema,
+  verifyOtpSchema, 
+  forgotPasswordSchema,
+  changeRoleSchema
 };
+
