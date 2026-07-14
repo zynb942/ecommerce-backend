@@ -30,7 +30,7 @@ router.post(
 router.patch(
   "/change-role",
   protect,             
-  authorize("admin"),   
+  allowTo("admin"),   
   validate(changeRoleSchema), 
   changeRole           
 );

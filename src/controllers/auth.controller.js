@@ -127,10 +127,8 @@ const changeRole = asyncHandler(async (req, res, next) => {
   }
 
   // Send response back to the client
-  return sendResponse(res, 200, `User role updated successfully to ${role}`, {
-    userId: user._id,
-    updatedRole: user.role,
-  });
+  return sendResponse(res, 200, `User role updated successfully to ${role}`, {user});
+  
 });
 
 module.exports = { sendRegisterOTP, forgotPassword, changeRole };
