@@ -2,52 +2,52 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const ApiError = require("../utils/apiError");
 const asyncHandler = require("../utils/asyncHandler");
-const _config = require("../config/env");
+const _config = require('../config/env')
 
 const protect = asyncHandler(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new ApiError(401, "Unauthorized, no token provided");
-  }
+    const authHeader = req.headers.authorization;
 
-  const token = authHeader.split(" ")[1];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new ApiError(401, "Unauthorized, no token provided");
+    }
 
-  let decoded;
+    const token = authHeader.split(" ")[1];
 
-  try {
-    decoded = jwt.verify(token, _config.JWT_SECRET);
-  } catch (error) {
-    throw new ApiError(401, "Invalid or expired token");
-  }
+    let decoded;
 
-  const user = await User.findById(decoded.id);
+    try {
+        decoded = jwt.verify(token, _config.JWT_SECRET);
+    } catch (error) {
+        throw new ApiError(401, "Invalid or expired token");
+    }
 
-  if (!user) {
-    throw new ApiError(401, "User no longer exists");
-  }
+    const user = await User.findById(decoded.id);
 
-  req.user = user;
+    if (!user) {
+        throw new ApiError(401, "User no longer exists");
+    }
 
-  next();
+    req.user = user;
+
+    next();
+
+
 });
 
 const allowTo = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return next(
-        new ApiError(
-          403,
-          "Forbidden: You are not allowed to access this resource"
-        )
-      );
-    }
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return next(
+                new ApiError(403, "Forbidden: You are not allowed to access this resource")
+            );
+        }
 
-    next();
-  };
+        next();
+    };
 };
 
 module.exports = {
-  protect,
-  allowTo,
+    protect,
+    allowTo,
 };
