@@ -17,4 +17,9 @@ router.post(
   verifyOTP
 );
 
+router.post(
+  "/forgot-password/send-otp",
+  validate(forgotPasswordSchema),
+  forgotPassword
+);
 module.exports = router;
