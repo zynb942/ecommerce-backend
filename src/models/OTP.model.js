@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-
+// OTP schema definition
 const otpSchema = new mongoose.Schema(
     {
         email: {
@@ -21,8 +21,6 @@ const otpSchema = new mongoose.Schema(
             type: Object,
             default: null
         },
-
-
     },
     {
         timestamps: true,
@@ -35,7 +33,7 @@ otpSchema.index(
     { expireAfterSeconds: 0 }
 );
 
-
+// Create the OTP model from the defined schema
 const OTP = mongoose.model("OTP", otpSchema);
 
 module.exports = OTP;
