@@ -1,20 +1,30 @@
-const express = require("express");
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
+
+const validate = require("../middlewares/validation.middleware");
+const { protect, allowTo } = require("../middlewares/auth.middleware");
+
 
 const {
   sendRegisterOTP,
   forgotPassword,
+  resetPassword,
   adminTest,
 } = require("../controllers/auth.controller");
 
-const validate = require("../middlewares/validation.middleware");
-
-const { protect, allowTo } = require("../middlewares/auth.middleware");
 
 const {
   registerSchema,
   forgotPasswordSchema,
+  resetPasswordSchema,
 } = require("../validation/user.validation");
+
+
+
+
+// resetting password route
+router.post('/forgot-password/verify-otp', validate(resetPasswordSchema), resetPassword)
+
 
 router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
 
