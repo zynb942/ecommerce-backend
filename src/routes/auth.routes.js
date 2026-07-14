@@ -4,13 +4,16 @@ const router = express.Router();
 const {
   sendRegisterOTP,
   forgotPassword,
+  changeRole
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validation.middleware");
+const { protect, allowTo } = require("../middlewares/auth.middleware"); 
 
 const {
   registerSchema,
   forgotPasswordSchema,
+  changeRoleSchema
 } = require("../validation/user.validation");
 
 router.post(
@@ -23,6 +26,13 @@ router.post(
   "/forgot-password/send-otp",
   validate(forgotPasswordSchema),
   forgotPassword
+);
+router.patch(
+  "/change-role",
+  protect,             
+  authorize("admin"),   
+  validate(changeRoleSchema), 
+  changeRole           
 );
 
 module.exports = router;
