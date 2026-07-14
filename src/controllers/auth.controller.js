@@ -93,5 +93,11 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   "OTP sent to your email successfully"
 );
 });
-
-module.exports = { sendRegisterOTP, forgotPassword };
+const adminTest = asyncHandler(async (req, res) => {
+  return sendResponse(
+    res,
+    200,
+    "Welcome Admin"
+  );
+});
+module.exports = { sendRegisterOTP, forgotPassword, adminTest };
