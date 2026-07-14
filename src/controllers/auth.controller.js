@@ -11,6 +11,52 @@ const sendEmail = require("../utils/sendEmail");
 
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
+/**
+ * @desc Reset user password after verifying OTP
+ * @access Public
+ * @route POST /api/auth/forgot-password/verify-otp
+ * @param { import('express').Request } request Express request object
+ * @param { import('express').Response } response Express response object
+ * @param { import('express').NextFunction } next Express next function
+ */
+const resetPassword = asyncHandler(async(request, response, next) =>{
+  const { email, otp, newPassword } = request.body
+
+  // check if otp exists and valid
+  const otpDocument = await OTP.findOne({ email })
+  if(!otpDocument){
+    throw new ApiError(400, 'Invalid or expired OTP code')
+  }
+
+  // check the expiration of OTP 
+  if(otpDocument.expiresAt < new Date()) {
+    await OTP.deleteOne({ _id: otpDocument._id })
+    throw new ApiError(400, "OTP has expired");
+  }
+  
+  // compare the OTP with the hashed OTP in DB
+  const isMatch = await bcrypt.compare(otp, otpDocument.otp)
+  if(!isMatch) {
+    throw new ApiError(400, 'Invalid or expired OTP code')
+  } 
+
+  // check if user exists and update the password
+  const user = await User.findOne({ email })
+  if(!user) {
+    throw new ApiError(404, 'User not found')
+  }
+  user.password = newPassword
+  await user.save()
+
+  // Delete the used OTP from database for security
+  await OTP.deleteOne({ _id: otpDocument._id })
+
+  return sendResponse(response, 200, 'Password reset successfully')
+})
+
+
+
+
 const sendRegisterOTP = asyncHandler(async (req, res, next) => {
   // Validation بقت في الـ middleware
   const { username, email, password } = req.body;
@@ -94,6 +140,41 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   "OTP sent to your email successfully"
 );
 });
+
+const verifyOTP = asyncHandler(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  const otpDoc = await OTP.findOne({ email });
+
+  if (!otpDoc) {
+    return next(new ApiError(404, "Invalid or expired OTP"));
+  }
+
+  if (otpDoc.expiresAt < new Date()) {
+        await OTP.deleteMany({ email }); 
+        throw new ApiError(400, "OTP has expired");
+    }
+
+    if (!otpDoc.userData) {
+        throw new ApiError(400, "Invalid OTP data");
+    }
+
+  const isMatch = await bcrypt.compare(otp, otpDoc.otp);
+
+  if (!isMatch) {
+    return next(new ApiError(400, "Invalid OTP code"));
+  }
+
+  const user = await User.create({
+  ...otpDoc.userData,
+  isVerified: true,
+});
+
+  await OTP.deleteMany({ email });
+  
+  return sendResponse(res, 201, "User registered and verified successfully", { user });
+});
+
 const adminTest = asyncHandler(async (req, res) => {
   return sendResponse(
     res,
@@ -101,6 +182,7 @@ const adminTest = asyncHandler(async (req, res) => {
     "Welcome Admin"
   );
 });
+
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -135,4 +217,14 @@ const login = asyncHandler(async (req, res) => {
     user: userData,
   });
 });
-module.exports = { sendRegisterOTP, forgotPassword, adminTest, login};
+
+module.exports = {
+  sendRegisterOTP,
+  verifyOTP,
+  forgotPassword,
+  resetPassword,
+  adminTest,
+  login
+};
+
+
