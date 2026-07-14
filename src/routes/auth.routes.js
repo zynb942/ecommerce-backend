@@ -9,11 +9,7 @@ const {
 
 const validate = require("../middlewares/validation.middleware");
 
-const {
-  protect,
-  authorize,
-  allowTo,
-} = require("../middlewares/auth.middleware");
+const { protect, allowTo } = require("../middlewares/auth.middleware");
 
 const {
   registerSchema,
