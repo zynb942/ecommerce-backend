@@ -31,14 +31,16 @@ const protect = asyncHandler(async (req, res, next) => {
 
   next();
 });
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      throw new ApiError(401, "Unauthorized");
-    }
 
-    if (!roles.includes(req.user.role)) {
-      throw new ApiError(403, "Forbidden");
+const allowTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(
+        new ApiError(
+          403,
+          "Forbidden: You are not allowed to access this resource"
+        )
+      );
     }
 
     next();
@@ -47,5 +49,5 @@ const authorize = (...roles) => {
 
 module.exports = {
   protect,
-  authorize,
+  allowTo,
 };
