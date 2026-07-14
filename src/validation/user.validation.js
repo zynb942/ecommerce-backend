@@ -42,7 +42,7 @@ const registerSchema = Joi.object({
     }),
 });
 
-const forgotPasswordSchema = Joi.object({
+const loginSchema = Joi.object({
   email: Joi.string()
     .trim()
     .lowercase()
@@ -54,11 +54,19 @@ const forgotPasswordSchema = Joi.object({
       "string.email": "Email must be a valid email",
       "any.required": "Email is required",
     }),
+
+  password: Joi.string()
+   .min(8)  
+  .required()
+    .messages({
+      "string.base": "Password must be a string",
+      "string.empty": "Password is required",
+      "any.required": "Password is required",
+    }),
 });
 
 module.exports = {
   userSchema,
   registerSchema,
-  forgotPasswordSchema,
+  loginSchema,
 };
-
