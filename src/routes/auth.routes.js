@@ -3,36 +3,44 @@ const router = express.Router();
 
 const {
   sendRegisterOTP,
+  verifyOTP,
   forgotPassword,
-  changeRole
+  resetPassword,
+  adminTest,
+  changeRole, 
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validation.middleware");
-const { protect, allowTo } = require("../middlewares/auth.middleware"); 
+const { protect, allowTo } = require("../middlewares/auth.middleware");
 
 const {
   registerSchema,
+  verifyOtpSchema,
   forgotPasswordSchema,
-  changeRoleSchema
+  resetPasswordSchema,
+  changeRoleSchema, 
 } = require("../validation/user.validation");
 
-router.post(
-  "/register/send-otp",
-  validate(registerSchema),
-  sendRegisterOTP
-);
+// ==================== Public Routes ====================
 
-router.post(
-  "/forgot-password/send-otp",
-  validate(forgotPasswordSchema),
-  forgotPassword
-);
+router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
+
+router.post("/register/verify-otp", validate(verifyOtpSchema), verifyOTP);
+
+router.post("/forgot-password/send-otp", validate(forgotPasswordSchema), forgotPassword);
+
+router.post("/forgot-password/verify-otp", validate(resetPasswordSchema), resetPassword);
+
+// ==================== Protected Admin Routes ====================
+
 router.patch(
   "/change-role",
-  protect,             
-  allowTo("admin"),   
-  validate(changeRoleSchema), 
-  changeRole           
+  protect,
+  allowTo("admin"), 
+  validate(changeRoleSchema),
+  changeRole
 );
+
+router.get("/admin-test", protect, allowTo("admin"), adminTest);
 
 module.exports = router;
