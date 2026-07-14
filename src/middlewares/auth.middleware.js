@@ -35,8 +35,19 @@ const protect = asyncHandler(async (req, res, next) => {
 
 });
 
+const allowTo = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return next(
+                new ApiError(403, "Forbidden: You are not allowed to access this resource")
+            );
+        }
+
+        next();
+    };
+};
 
 module.exports = {
     protect,
+    allowTo,
 };
-
