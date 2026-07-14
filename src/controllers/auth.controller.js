@@ -1,13 +1,13 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken");
 const User = require("../models/user.model.js");
 const OTP = require("../models/OTP.model.js");
 const ApiError = require("../utils/apiError.js");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");
-
+const _config = require("../config/env");
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
 /**
@@ -221,10 +221,43 @@ const adminTest = asyncHandler(async (req, res) => {
   );
 });
 
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    throw new ApiError(401, "Invalid email or password");
+  }
+
+  const isMatch = await user.comparePassword(password);
+
+  if (!isMatch) {
+    throw new ApiError(401, "Invalid email or password");
+  }
+
+  const token = jwt.sign(
+    {
+      id: user._id,
+      
+    },
+     _config.JWT_SECRET, 
+    {
+      expiresIn: _config.JWT_EXPIRE,
+    }
+  );
+const userData = user.toObject();
+  delete userData.password;
+  return sendResponse(res, 200, "Login successful", {
+    token,
+    user: userData,
+  });
+});
 
 module.exports = { 
   sendRegisterOTP,
   verifyOTP,
+  login,
   forgotPassword,
   resetPassword,
   adminTest,
