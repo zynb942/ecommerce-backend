@@ -4,25 +4,26 @@ const router = express.Router();
 const {
   sendRegisterOTP,
   forgotPassword,
+  adminTest,
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validation.middleware");
+
+const { protect, allowTo } = require("../middlewares/auth.middleware");
 
 const {
   registerSchema,
   forgotPasswordSchema,
 } = require("../validation/user.validation");
 
-router.post(
-  "/register/send-otp",
-  validate(registerSchema),
-  sendRegisterOTP
-);
+router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
 
 router.post(
   "/forgot-password/send-otp",
   validate(forgotPasswordSchema),
-  forgotPassword
+  forgotPassword,
 );
+
+router.get("/admin-test", protect, allowTo("admin"), adminTest);
 
 module.exports = router;

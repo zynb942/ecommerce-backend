@@ -128,8 +128,20 @@ const verifyOTP = asyncHandler(async (req, res, next) => {
   return sendResponse(res, 201, "User registered and verified successfully", { user });
 });
 
+const adminTest = asyncHandler(async (req, res) => {
+  return sendResponse(
+    res,
+    200,
+    "Welcome Admin"
+  );
+});
+module.exports = { sendRegisterOTP, forgotPassword, adminTest };
+
+
 module.exports = { 
   sendRegisterOTP,
   verifyOTP,
-  forgotPassword
+  forgotPassword,
+  adminTest
 };
+
