@@ -6,11 +6,11 @@
  * @param {object} data Express JSON response
  * @returns { object } Express response object
  */
-const sendResponse = (response, statusCode, message, data = null) => {
+const sendResponse = (response, statusCode, message, data = {}) => {
   return response.status(statusCode).json({
     success: true,
     message,
-    data,
+    ...data,
   });
 };
 
