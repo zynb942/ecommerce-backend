@@ -93,6 +93,41 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   "OTP sent to your email successfully"
 );
 });
+
+const verifyOTP = asyncHandler(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  const otpDoc = await OTP.findOne({ email });
+
+  if (!otpDoc) {
+    return next(new ApiError(404, "Invalid or expired OTP"));
+  }
+
+  if (otpDoc.expiresAt < new Date()) {
+        await OTP.deleteMany({ email }); 
+        throw new ApiError(400, "OTP has expired");
+    }
+
+    if (!otpDoc.userData) {
+        throw new ApiError(400, "Invalid OTP data");
+    }
+
+  const isMatch = await bcrypt.compare(otp, otpDoc.otp);
+
+  if (!isMatch) {
+    return next(new ApiError(400, "Invalid OTP code"));
+  }
+
+  const user = await User.create({
+  ...otpDoc.userData,
+  isVerified: true,
+});
+
+  await OTP.deleteMany({ email });
+  
+  return sendResponse(res, 201, "User registered and verified successfully", { user });
+});
+
 const adminTest = asyncHandler(async (req, res) => {
   return sendResponse(
     res,
@@ -101,3 +136,12 @@ const adminTest = asyncHandler(async (req, res) => {
   );
 });
 module.exports = { sendRegisterOTP, forgotPassword, adminTest };
+
+
+module.exports = { 
+  sendRegisterOTP,
+  verifyOTP,
+  forgotPassword,
+  adminTest
+};
+
