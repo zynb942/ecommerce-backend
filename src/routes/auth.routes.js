@@ -5,6 +5,7 @@ const {
   sendRegisterOTP,
   forgotPassword,
   adminTest,
+  login,
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validation.middleware");
@@ -14,6 +15,7 @@ const { protect, allowTo } = require("../middlewares/auth.middleware");
 const {
   registerSchema,
   forgotPasswordSchema,
+  loginSchema,
 } = require("../validation/user.validation");
 
 router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
@@ -24,6 +26,7 @@ router.post(
   forgotPassword,
 );
 
+router.post("/login", validate(loginSchema), login);
 router.get("/admin-test", protect, allowTo("admin"), adminTest);
 
 module.exports = router;
