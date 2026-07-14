@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-
 const User = require("../models/user.model.js");
 const OTP = require("../models/OTP.model.js");
 const ApiError = require("../utils/apiError.js");
@@ -87,11 +86,11 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 
     throw error;
   }
-  return sendResponse(
-  res,
-  200,
-  "OTP sent to your email successfully"
-);
+  return sendResponse(res, 200, "OTP sent to your email successfully");
 });
 
-module.exports = { sendRegisterOTP, forgotPassword };
+const logout = asyncHandler(async (req, res, next) => {
+  return sendResponse(res, 200, "Logged out successfully");
+});
+
+module.exports = { sendRegisterOTP, forgotPassword, logout };
