@@ -7,6 +7,7 @@ const { protect, allowTo } = require("../middlewares/auth.middleware");
 
 const {
   sendRegisterOTP,
+  verifyOTP,
   forgotPassword,
   resetPassword,
   adminTest,
@@ -15,24 +16,30 @@ const {
 
 const {
   registerSchema,
+  verifyOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } = require("../validation/user.validation");
 
 
-
-
-// resetting password route
-router.post('/forgot-password/verify-otp', validate(resetPasswordSchema), resetPassword)
-
-
 router.post("/register/send-otp", validate(registerSchema), sendRegisterOTP);
+
+router.post(
+    "/register/verify-otp",
+    validate(verifyOtpSchema),
+    verifyOTP
+);
 
 router.post(
   "/forgot-password/send-otp",
   validate(forgotPasswordSchema),
   forgotPassword,
 );
+
+// resetting password route
+router.post('/forgot-password/verify-otp', validate(resetPasswordSchema), resetPassword)
+
+
 
 router.get("/admin-test", protect, allowTo("admin"), adminTest);
 
