@@ -133,11 +133,11 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 
     throw error;
   }
-  return sendResponse(
-  res,
-  200,
-  "OTP sent to your email successfully"
-);
+  return sendResponse(res, 200, "OTP sent to your email successfully");
+});
+
+const logout = asyncHandler(async (req, res, next) => {
+  return sendResponse(res, 200, "Logged out successfully");
 });
 
 
@@ -258,6 +258,7 @@ module.exports = {
   sendRegisterOTP,
   verifyOTP,
   login,
+  logout,
   forgotPassword,
   resetPassword,
   adminTest,

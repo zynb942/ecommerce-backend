@@ -5,10 +5,13 @@ const {
   sendRegisterOTP,
   verifyOTP,
   forgotPassword,
+   logout,
   resetPassword,
   adminTest,
   changeRole, 
 } = require("../controllers/auth.controller");
+
+const { protect } = require("../middlewares/auth.middleware");
 
 const validate = require("../middlewares/validation.middleware");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
@@ -30,6 +33,8 @@ router.post("/register/verify-otp", validate(verifyOtpSchema), verifyOTP);
 router.post("/forgot-password/send-otp", validate(forgotPasswordSchema), forgotPassword);
 
 router.post("/forgot-password/verify-otp", validate(resetPasswordSchema), resetPassword);
+
+router.post("/auth/logout", protect, logout);
 
 // ==================== Protected Admin Routes ====================
 
