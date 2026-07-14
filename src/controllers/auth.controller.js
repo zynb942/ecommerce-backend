@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model.js");
+const _config = require("../config/env");
 const OTP = require("../models/OTP.model.js");
 const ApiError = require("../utils/apiError.js");
 const asyncHandler = require("../utils/asyncHandler");
@@ -246,8 +247,10 @@ const login = asyncHandler(async (req, res) => {
       expiresIn: _config.JWT_EXPIRE,
     }
   );
-const userData = user.toObject();
+
+  const userData = user.toObject();
   delete userData.password;
+
   return sendResponse(res, 200, "Login successful", {
     token,
     user: userData,
@@ -261,6 +264,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   adminTest,
-  changeRole
+  changeRole,
+  login
 };
 
