@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-const { sendRegisterOTP, verifyOTP } = require("../controllers/auth.controller");
+const { sendRegisterOTP, verifyOTP, forgotPassword } = require("../controllers/auth.controller");
 const validate = require("../middlewares/validation.middlewares");
-const { registerSchema, verifyOtpSchema } = require("../validation/user.validation");
+const { registerSchema, verifyOtpSchema,forgotPasswordSchema } = require("../validation/user.validation");
 
 router.post(
   "/register/send-otp",
