@@ -5,10 +5,11 @@ const {
   sendRegisterOTP,
   verifyOTP,
   forgotPassword,
-   logout,
+  login,
+  logout,
   resetPassword,
   adminTest,
-  changeRole, 
+  changeRole,
 } = require("../controllers/auth.controller");
 
 const { protect } = require("../middlewares/auth.middleware");
@@ -19,9 +20,10 @@ const { protect, allowTo } = require("../middlewares/auth.middleware");
 const {
   registerSchema,
   verifyOtpSchema,
+  loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  changeRoleSchema, 
+  changeRoleSchema,
 } = require("../validation/user.validation");
 
 // ==================== Public Routes ====================
@@ -36,12 +38,14 @@ router.post("/forgot-password/verify-otp", validate(resetPasswordSchema), resetP
 
 router.post("/auth/logout", protect, logout);
 
+router.post("/login", validate(loginSchema), login);
+
 // ==================== Protected Admin Routes ====================
 
 router.patch(
   "/change-role",
   protect,
-  allowTo("admin"), 
+  allowTo("admin"),
   validate(changeRoleSchema),
   changeRole
 );
