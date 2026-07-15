@@ -24,7 +24,7 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema,
   changeRoleSchema,
-} = require("../validation/user.validation");
+} = require("../validation/auth.validation");
 
 // ==================== Public Routes ====================
 
