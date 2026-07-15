@@ -14,6 +14,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
   user.avatar = req.body.avatar ?? user.avatar;
 
   await user.save();
+  user.password = undefined;
   return sendResponse(res, 200, "User profile updated successfully", { user });
 });
 
