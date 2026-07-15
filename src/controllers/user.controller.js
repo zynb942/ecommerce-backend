@@ -5,17 +5,21 @@ const sendResponse = require("../utils/sendResponse.js");
 
 const updateUser = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+  if (!req.user._id.equals(id)){
+    throw new ApiError(403, "You are not allowed to update this profile");
+  }
   const user = await User.findById(id);
-  if (!user) throw new ApiError(404, "User not found");
-  if (req.user._id.toString() !== id) throw new ApiError(403, "Not authorized");
-
   user.username = req.body.username ?? user.username;
   user.phone = req.body.phone ?? user.phone;
   user.avatar = req.body.avatar ?? user.avatar;
 
   await user.save();
-  user.password = undefined;
-  return sendResponse(res, 200, "User profile updated successfully", { user });
+  const UserData = user.toObject();
+  delete UserData.password;
+
+  return sendResponse(res,200,"Success", {
+    user : UserData,
+  })
 });
 
 module.exports = { updateUser };
