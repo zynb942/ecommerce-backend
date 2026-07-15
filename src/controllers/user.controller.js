@@ -32,6 +32,31 @@ const addUser = asyncHandler(async (req, res) => {
   );
 });
 
+const updateUser = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  if (!req.user._id.equals(id)){
+    throw new ApiError(403, "You are not allowed to update this profile");
+  }
+  const user = await User.findById(id);
+  
+   if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+  
+  user.username = req.body.username ?? user.username;
+  user.phone = req.body.phone ?? user.phone;
+  user.avatar = req.body.avatar ?? user.avatar;
+
+  await user.save();
+  const UserData = user.toObject();
+  delete UserData.password;
+
+  return sendResponse(res,200,"Success", {
+    user : UserData,
+  })
+});
+
+
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find()
     .select("-password")
@@ -51,4 +76,5 @@ const getAllUsers = asyncHandler(async (req, res) => {
 module.exports = {
   addUser,
   getAllUsers,
+  updateUser,
 };

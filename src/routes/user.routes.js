@@ -3,10 +3,11 @@ const router = express.Router();
 const {
   addUser,
   getAllUsers,
+   updateUser,
 } = require("../controllers/user.controller");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
-const { addUserSchema } = require("../validation/user.validation");
+const { addUserSchema ,updateUserSchema } = require("../validation/user.validation");
 
 router.post(
   "/add",
@@ -22,5 +23,8 @@ router.get(
   allowTo("admin"),
   getAllUsers
 );
+
+router.patch("/:id", protect, validate(updateUserSchema), updateUser);
+
 
 module.exports = router;

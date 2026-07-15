@@ -1,4 +1,5 @@
-const Joi = require('joi')
+const Joi = require("joi");
+
 
 const addUserSchema = Joi.object({
   username: Joi.string()
@@ -55,8 +56,30 @@ const addUserSchema = Joi.object({
   allowUnknown: false,
 });
 
+
+
+const updateUserSchema = Joi.object({
+  username: Joi.string().trim().min(3).max(30).messages({
+    "string.base": "Username must be a string",
+    "string.min": "Username must be at least 3 characters long",
+    "sring.max": "Username cannot exceed 30 characters",
+  }),
+  phone: Joi.string().pattern(/^\+?[1-9]\d{7,14}$/).messages({
+    "string.base": "Phone must be a string",
+    "string.pattern.base": "Phone number must be a valid international format",
+  }),
+
+  avatar: Joi.string().trim().uri().messages({
+   "string.base": "Avatar must be a string",
+    "string.uri": "Avatar must be a valid URL",
+  }),
+})
+.options({
+    abortEarly: false,
+    allowUnknown: false,
+
+  });
 module.exports = {
+  updateUserSchema,
   addUserSchema,
 };
-
-

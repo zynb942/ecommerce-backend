@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   sendRegisterOTP,
-  verifyOTP,
+   verifyOTP,
   forgotPassword,
   login,
   logout,
@@ -34,7 +34,7 @@ router.post("/forgot-password/send-otp", validate(forgotPasswordSchema), forgotP
 
 router.post("/forgot-password/verify-otp", validate(resetPasswordSchema), resetPassword);
 
-router.post("/auth/logout", protect, logout);
+router.post("/logout", protect, logout);
 
 router.post("/login", validate(loginSchema), login);
 
@@ -49,5 +49,6 @@ router.patch(
 );
 
 router.get("/admin-test", protect, allowTo("admin"), adminTest);
+
 
 module.exports = router;
