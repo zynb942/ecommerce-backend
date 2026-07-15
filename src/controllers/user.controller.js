@@ -32,7 +32,23 @@ const addUser = asyncHandler(async (req, res) => {
   );
 });
 
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find()
+    .select("-password")
+    .sort({ createdAt: -1 });
+
+  return sendResponse(
+    res,
+    200,
+    "Users fetched successfully",
+    {
+      count: users.length,
+      users,
+    }
+  );
+});
+
 module.exports = {
   addUser,
+  getAllUsers,
 };
-
