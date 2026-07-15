@@ -27,7 +27,8 @@ const addUserSchema = Joi.object({
     }),
 
   password: Joi.string()
-    .pattern(
+  .trim()  
+  .pattern(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/
     )
     .required()
@@ -41,12 +42,12 @@ const addUserSchema = Joi.object({
 
   phone: Joi.string()
     .trim()
-    .pattern(/^[0-9]{11}$/)
+    .pattern(/^\+?[1-9]\d{7,14}$/) 
     .required()
     .messages({
       "string.base": "Phone must be a string",
       "string.empty": "Phone is required",
-      "string.pattern.base": "Phone must be 11 digits",
+      "string.pattern.base": "Phone must be a valid international number (e.g., +201234567890 or 01234567890)",
       "any.required": "Phone is required",
     }),
 }).options({
