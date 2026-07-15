@@ -12,8 +12,6 @@ const {
   changeRole,
 } = require("../controllers/auth.controller");
 
-const { protect } = require("../middlewares/auth.middleware");
-
 const validate = require("../middlewares/validation.middleware");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 
