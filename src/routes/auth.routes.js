@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {
   sendRegisterOTP,
-   verifyOTP,
+  verifyOTP,
   forgotPassword,
   login,
   logout,

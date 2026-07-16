@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   addUser,
   getAllUsers,
-   updateUser,
+  updateUser,
 } = require("../controllers/user.controller");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
