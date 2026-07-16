@@ -1,5 +1,5 @@
 const cloudinary = require("../config/cloudinary");
-const ApiError = require("./apiError");
+const ApiError = require("./ApiError"); 
 
 const uploadToCloudinary = (file, folder = "ecommerce") => {
   return new Promise((resolve, reject) => {
@@ -7,13 +7,11 @@ const uploadToCloudinary = (file, folder = "ecommerce") => {
       return reject(new ApiError(400, "No file provided"));
     }
 
-    // cloudinary uploader options
     const options = {
       folder,
       resource_type: "image",
     };
 
-    // cloud storage case
     if (file.buffer) {
       const uploadStream = cloudinary.uploader.upload_stream(
         options,
@@ -26,15 +24,14 @@ const uploadToCloudinary = (file, folder = "ecommerce") => {
             public_id: result.public_id,
             url: result.secure_url,
           });
-        },
+        }
       );
 
-      uploadStream.end(file.buffer);
+      return uploadStream.end(file.buffer);
     }
 
-    // local storage case
-    else if (file.path) {
-      cloudinary.uploader.upload(file.path, options, (error, result) => {
+    if (file.path) {
+      return cloudinary.uploader.upload(file.path, options, (error, result) => {
         if (error) {
           console.error(error);
           return reject(new ApiError(500, "Failed to upload image"));
@@ -45,7 +42,7 @@ const uploadToCloudinary = (file, folder = "ecommerce") => {
         });
       });
     }
-    // invalid file structure
+
     return reject(new ApiError(400, "Invalid file structure"));
   });
 };
