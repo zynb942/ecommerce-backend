@@ -30,7 +30,7 @@ router.delete(
   "/:id",
   protect,
   allowTo("admin"),
-  validate(userIdSchema),
+  validate(userIdSchema, "params"),
   deleteUser,
 );
 

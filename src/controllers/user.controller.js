@@ -74,7 +74,7 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
   await user.deleteOne();
 
-  return sendResponse(res, 200, "User deleted successfully", null);
+  return sendResponse(res, 200, "User deleted successfully");
 });
 
 module.exports = {
