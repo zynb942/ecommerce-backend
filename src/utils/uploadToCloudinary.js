@@ -1,16 +1,16 @@
-const cloudinary = require("../config/cloudinary"); 
-const ApiError = require("./apiError"); 
+const cloudinary = require("../config/cloudinary");
+const ApiError = require("./apiError");
 
 const uploadToCloudinary = (file, folder = "ecommerce") => {
   return new Promise((resolve, reject) => {
     if (!file) {
-      return reject(new ApiError("No file provided for upload", 400));
+      return reject(new ApiError(400, "No file provided"));
     }
 
     // cloudinary uploader options
     const options = {
-      folder: folder,
-      resource_type: "auto", //(image, video, raw)
+      folder,
+      resource_type: "image",
     };
 
     // cloud storage case
@@ -19,34 +19,34 @@ const uploadToCloudinary = (file, folder = "ecommerce") => {
         options,
         (error, result) => {
           if (error) {
-            return reject(new ApiError(`Cloudinary Upload Error: ${error.message}`, 500));
+            console.error(error);
+            return reject(new ApiError(500, "Failed to upload image"));
           }
           resolve({
             public_id: result.public_id,
             url: result.secure_url,
           });
-        }
+        },
       );
 
       uploadStream.end(file.buffer);
-    } 
+    }
 
     // local storage case
     else if (file.path) {
       cloudinary.uploader.upload(file.path, options, (error, result) => {
         if (error) {
-          return reject(new ApiError(`Cloudinary Upload Error: ${error.message}`, 500));
+          console.error(error);
+          return reject(new ApiError(500, "Failed to upload image"));
         }
         resolve({
           public_id: result.public_id,
           url: result.secure_url,
         });
       });
-    } 
-// invalid file structure
-    else {
-      reject(new ApiError("Invalid file structure. File buffer or path not found.", 400));
     }
+    // invalid file structure
+    return reject(new ApiError(400, "Invalid file structure"));
   });
 };
 
