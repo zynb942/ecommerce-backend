@@ -7,9 +7,9 @@ const ApiError = require("../utils/apiError");
  * @param { object } schema Joi validation schema
  * @returns { function } Express middleware function
  */
-const validate = (schema) => {
+const validate = (schema, property = "body") => {
   return (request, response, next) => {
-    const { error, value } = schema.validate(request.body, {
+    const { error, value } = schema.validate(request[property], {
       abortEarly: false
     });
 
@@ -21,6 +21,9 @@ const validate = (schema) => {
         )
       );
     }
+
+    req[property] = value;
+
     next()
   };
 };
