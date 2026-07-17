@@ -97,8 +97,11 @@ const createProductSchema = Joi.object({
   }
 
   return value;
+})
+.options({
+  abortEarly: false,
+  allowUnknown: false,
 });
-
 module.exports = {
   createProductSchema,
 };
