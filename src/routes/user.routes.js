@@ -4,27 +4,42 @@ const {
   addUser,
   getAllUsers,
   updateUser,
+  deleteUser,
+  getUserById
 } = require("../controllers/user.controller");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
-const { addUserSchema ,updateUserSchema } = require("../validation/user.validation");
+const {
+  addUserSchema,
+  updateUserSchema,
+  userIdSchema,
+} = require("../validation/user.validation");
 
 router.post(
   "/add",
   protect,
   allowTo("admin"),
   validate(addUserSchema),
-  addUser
+  addUser,
 );
 
-router.get(
-  "/all",
-  protect,
-  allowTo("admin"),
-  getAllUsers
-);
+router.get("/all", protect, allowTo("admin"), getAllUsers);
 
 router.patch("/:id", protect, validate(updateUserSchema), updateUser);
 
+router.delete(
+  "/:id",
+  protect,
+  allowTo("admin"),
+  validate(userIdSchema, "params"),
+  deleteUser,
+);
+router.get(
+  "/:id",
+  protect,
+  allowTo("admin"),
+  validate(userIdSchema, "params"),
+  getUserById
+);
 
 module.exports = router;
