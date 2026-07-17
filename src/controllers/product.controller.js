@@ -2,11 +2,6 @@ const Product = require("../models/product.model");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 
-/**
- * @desc    Get All Products (Public Route with Filtering, Search, Pagination, & Sorting)
- * @route   GET /products
- * @access  Public
- */
 // get all products with filtering, search, pagination, and sorting
 const getAllProducts = asyncHandler(async (req, res) => {
 // pagination parameters with default values
@@ -80,7 +75,6 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
   // Send the response with products and pagination info
   return sendResponse(res, 200, "Products retrieved successfully", {
-    success: true,
     totalProducts,
     currentPage: page,
     totalPages,
