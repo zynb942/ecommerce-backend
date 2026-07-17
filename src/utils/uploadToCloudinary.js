@@ -1,5 +1,5 @@
 const cloudinary = require("../config/cloudinary");
-const ApiError = require("./ApiError"); 
+const ApiError = require("./apiError"); 
 
 const uploadToCloudinary = (file, folder = "ecommerce") => {
   return new Promise((resolve, reject) => {
