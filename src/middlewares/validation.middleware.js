@@ -6,9 +6,9 @@ const ApiError = require("../utils/apiError");
  * @param {String} property request property to validate (body, params, query)
  */
 const validate = (schema, property = "body") => {
-  return (req, res, next) => {
-    const { error } = schema.validate(req[property], {
-      abortEarly: false,
+  return (request, response, next) => {
+    const { error, value } = schema.validate(request[property], {
+      abortEarly: false
     });
 
     if (error) {
@@ -20,7 +20,9 @@ const validate = (schema, property = "body") => {
       );
     }
 
-    next();
+    req[property] = value;
+
+    next()
   };
 };
 

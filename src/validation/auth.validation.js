@@ -1,4 +1,3 @@
-
 const Joi = require("joi");
 
 const userSchema = Joi.object({});
@@ -131,13 +130,10 @@ const changeRoleSchema = Joi.object({
     }),
 });
 
-
-// validation schema for requesting a Reset Password
 const resetPasswordSchema = Joi.object({
   email: Joi.string().email().required().lowercase().trim().messages({
     "string.empty": "Email cannot be empty",
     "string.base": "Email must be a string",
-    "string.base": "OTP must be a string",
     "string.email": "Please enter a valid email address",
     "any.required": "Email is required"
   }),
@@ -165,4 +161,3 @@ module.exports = {
   resetPasswordSchema,
   changeRoleSchema
 };
-
