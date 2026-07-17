@@ -5,6 +5,7 @@ const {
   getAllUsers,
   updateUser,
   deleteUser,
+  getUserById
 } = require("../controllers/user.controller");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
@@ -32,6 +33,13 @@ router.delete(
   allowTo("admin"),
   validate(userIdSchema, "params"),
   deleteUser,
+);
+router.get(
+  "/:id",
+  protect,
+  allowTo("admin"),
+  validate(userIdSchema, "params"),
+  getUserById
 );
 
 module.exports = router;

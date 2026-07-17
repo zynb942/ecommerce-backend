@@ -45,6 +45,19 @@ const addUserSchema = Joi.object({
   abortEarly: false,
   allowUnknown: false,
 });
+const userIdSchema = Joi.object({
+  id: Joi.string()
+    .hex()
+    .length(24)
+    .required()
+    .messages({
+      "string.base": "User id must be a string",
+      "string.empty": "User id is required",
+      "string.hex": "Invalid user id",
+      "string.length": "Invalid user id",
+      "any.required": "User id is required",
+    }),
+});
 
 const updateUserSchema = Joi.object({
   username: Joi.string().trim().min(3).max(30).messages({

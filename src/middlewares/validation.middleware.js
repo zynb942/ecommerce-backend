@@ -1,11 +1,9 @@
-const Joi = require("joi");
 const ApiError = require("../utils/apiError");
 
-
 /**
- * Request body validation middleware using Joi
- * @param { object } schema Joi validation schema
- * @returns { function } Express middleware function
+ * Request validation middleware using Joi
+ * @param {Object} schema Joi validation schema
+ * @param {String} property request property to validate (body, params, query)
  */
 const validate = (schema, property = "body") => {
   return (request, response, next) => {
@@ -17,7 +15,7 @@ const validate = (schema, property = "body") => {
       return next(
         new ApiError(
           400,
-          error.details.map((err) => err.message).join(', ')
+          error.details.map((err) => err.message).join(", ")
         )
       );
     }

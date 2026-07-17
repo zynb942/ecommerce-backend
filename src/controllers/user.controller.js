@@ -12,6 +12,23 @@ const addUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Email already registered");
   }
 
+  const getUserById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id).select("-password");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return sendResponse(
+    res,
+    200,
+    "User retrieved successfully",
+    { user }
+  );
+});
+
   const user = await User.create({
     username,
     email: email.toLowerCase(),
@@ -82,4 +99,5 @@ module.exports = {
   getAllUsers,
   updateUser,
   deleteUser,
+  getUserById,
 };
