@@ -5,7 +5,6 @@ const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
 const ApiError = require("../utils/apiError");
 
-
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
   const page = parseInt(req.query.page, 10) || 1;
@@ -81,7 +80,6 @@ const getAllProducts = asyncHandler(async (req, res) => {
     totalProducts,
     currentPage: page,
     totalPages,
-<<<<<<< HEAD
     products,
   });
 });
@@ -101,13 +99,9 @@ const getProductReviews = asyncHandler(async (req, res) => {
     averageRating: product.averageRating,
     numReviews: product.numReviews,
     reviews: product.reviews,
-=======
-    products
-
+    products,
   });
 });
-
-
 
 /**
  * @desc Create new product
@@ -156,7 +150,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
   // Upload images to Cloudinary
   const uploadedImages = await Promise.all(
-    req.files.map((file) => uploadToCloudinary(file, "products"))
+    req.files.map((file) => uploadToCloudinary(file, "products")),
   );
 
   // Create product
@@ -181,17 +175,11 @@ const createProduct = asyncHandler(async (req, res) => {
   // Send response
   return sendResponse(res, 201, "Product created successfully", {
     product,
->>>>>>> 3d569624e826fb4bb7e77d19fb248066fff44ab7
   });
 });
 
 module.exports = {
-<<<<<<< HEAD
   getAllProducts,
   getProductReviews,
-};
-=======
   createProduct,
-  getAllProducts
 };
->>>>>>> 3d569624e826fb4bb7e77d19fb248066fff44ab7
