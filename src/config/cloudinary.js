@@ -1,3 +1,10 @@
-// TODO: Add Cloudinary configuration during the Cloudinary Integration phase.
+const { v2: cloudinary } = require("cloudinary");
+const _config = require("./env");
 
-module.exports = {};
+cloudinary.config({
+  cloud_name: _config.CLOUDINARY_CLOUD_NAME,
+  api_key: _config.CLOUDINARY_API_KEY,
+  api_secret: _config.CLOUDINARY_API_SECRET,
+});
+
+module.exports = cloudinary;

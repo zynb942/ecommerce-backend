@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "ping:cloud": "node src/test/ping-cloudinary.js",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
@@ -22,11 +23,13 @@
   "homepage": "https://github.com/zynb942/ecommerce-backend#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3",
+    "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
     "picocolors": "^1.1.1",
     "slugify": "^1.6.9"

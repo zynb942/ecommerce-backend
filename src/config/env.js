@@ -21,9 +21,14 @@ const _config = {
   EMAIL_PASS: process.env.EMAIL_PASS,
   
   JWT_SECRET:process.env.JWT_SECRET,
-  JWT_EXPIRE: process.env.JWT_EXPIRE
+  JWT_EXPIRE: process.env.JWT_EXPIRE,
 
+    // Cloudinary
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
+ 
 }
 
 module.exports = _config
