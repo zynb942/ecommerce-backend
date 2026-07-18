@@ -82,18 +82,7 @@ const updateUserSchema = Joi.object({
   allowUnknown: false,
 });
 
-const userIdSchema = Joi.object({
-  id: Joi.string()
-    .hex()
-    .pattern(/^[0-9a-fA-F]{24}$/)
-    .required()
-    .messages({
-      "string.base": "User ID must be a string",
-      "string.hex": "User ID must be a valid hexadecimal string",
-      "string.length": "User ID must be exactly 24 characters long",
-      "any.required": "User ID is required",
-    }),
-});
+
 
 module.exports = {
   updateUserSchema,
