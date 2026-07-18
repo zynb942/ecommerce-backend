@@ -1,5 +1,6 @@
 const Product = require("../models/product.model");
 const uploadToCloudinary = require("../utils/uploadToCloudinary");
+const cloudinary = require("../config/cloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
@@ -87,7 +88,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 // get product reviews
 
 const getProductReviews = asyncHandler(async (req, res) => {
-  const { id } = req.params.id;
+  const { id } = req.params;
 
   const product = await Product.findById(id);
 
@@ -99,7 +100,6 @@ const getProductReviews = asyncHandler(async (req, res) => {
     averageRating: product.averageRating,
     numReviews: product.numReviews,
     reviews: product.reviews,
-    products,
   });
 });
 
@@ -178,8 +178,98 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  let {
+    name,
+    shortDescription,
+    description,
+    price,
+    discountPrice,
+    stock,
+    sku,
+    category,
+    subcategory,
+    brand,
+    tags,
+    featured,
+    isActive,
+    deletedImages,
+  } = req.body;
+
+  // convert tags to array
+  if (typeof tags === "string") {
+    try {
+      tags = JSON.parse(tags);
+    } catch {
+      tags = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+  }
+
+  // update only sent fields
+  product.name = name ?? product.name;
+  product.shortDescription = shortDescription ?? product.shortDescription;
+  product.description = description ?? product.description;
+  product.price = price ?? product.price;
+  product.discountPrice = discountPrice ?? product.discountPrice;
+  product.stock = stock ?? product.stock;
+  product.sku = sku ?? product.sku;
+  product.category = category ?? product.category;
+  product.subcategory = subcategory ?? product.subcategory;
+  product.brand = brand ?? product.brand;
+  product.tags = tags ?? product.tags;
+  product.featured = featured ?? product.featured;
+  product.isActive = isActive ?? product.isActive;
+
+  // delete selected images
+  if (deletedImages) {
+    let imagesToDelete = deletedImages;
+
+    if (typeof imagesToDelete === "string") {
+      try {
+        imagesToDelete = JSON.parse(imagesToDelete);
+      } catch {
+        imagesToDelete = [imagesToDelete];
+      }
+    }
+
+    for (const publicId of imagesToDelete) {
+      await cloudinary.uploader.destroy(publicId);
+
+      product.images = product.images.filter(
+        (img) => img.public_id !== publicId
+      );
+    }
+  }
+
+  // upload new images
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = await Promise.all(
+      req.files.map((file) => uploadToCloudinary(file, "products"))
+    );
+
+    product.images.push(...uploadedImages);
+  }
+
+  await product.save();
+
+  return sendResponse(res, 200, "Product updated successfully", {
+    product,
+  });
+});
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
+  updateProduct,
 };

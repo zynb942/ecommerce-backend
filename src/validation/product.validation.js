@@ -17,7 +17,7 @@ const createProductSchema = Joi.object({
     .required()
     .messages({
       "string.empty": "Short description is required",
-      "string.max": "Short description cannot exceed 500 characters",
+      "string.max": "Short description cannot exceed 500 characters", 
       "any.required": "Short description is required",
     }),
 
@@ -102,6 +102,72 @@ const createProductSchema = Joi.object({
   abortEarly: false,
   allowUnknown: false,
 });
+const productIdSchema = Joi.object({
+  id: Joi.string()
+    .hex()
+    .length(24)
+    .required()
+    .messages({
+      "string.base": "Product id must be a string",
+      "string.empty": "Product id is required",
+      "string.hex": "Invalid product id",
+      "string.length": "Invalid product id",
+      "any.required": "Product id is required",
+    }),
+});
+
+const updateProductSchema = Joi.object({
+  name: Joi.string().trim().max(200),
+
+  shortDescription: Joi.string().trim().max(500),
+
+  description: Joi.string().trim(),
+
+  price: Joi.number().positive(),
+
+  discountPrice: Joi.number().min(0),
+
+  stock: Joi.number().integer().min(0),
+
+  sku: Joi.string().trim(),
+
+  category: Joi.string().trim(),
+
+  subcategory: Joi.string().trim(),
+
+  brand: Joi.string().trim(),
+
+  tags: Joi.alternatives().try(
+    Joi.array().items(Joi.string().trim()),
+    Joi.string()
+  ),
+
+  featured: Joi.boolean(),
+
+  isActive: Joi.boolean(),
+
+  deletedImages: Joi.array().items(Joi.string()),
+})
+.custom((value, helpers) => {
+  if (
+    value.discountPrice !== undefined &&
+    value.price !== undefined &&
+    value.discountPrice > value.price
+  ) {
+    return helpers.message(
+      "Discount price cannot exceed product price"
+    );
+  }
+
+  return value;
+})
+.options({
+  abortEarly: false,
+  allowUnknown: false,
+});
+
 module.exports = {
   createProductSchema,
+  updateProductSchema,
+  productIdSchema,
 };
