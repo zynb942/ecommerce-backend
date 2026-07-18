@@ -87,7 +87,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 // get product reviews
 
 const getProductReviews = asyncHandler(async (req, res) => {
-  const { id } = req.params.id;
+  const { id } = req.params;
 
   const product = await Product.findById(id);
 
@@ -99,7 +99,7 @@ const getProductReviews = asyncHandler(async (req, res) => {
     averageRating: product.averageRating,
     numReviews: product.numReviews,
     reviews: product.reviews,
-    products,
+    
   });
 });
 
@@ -178,42 +178,40 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
-/**
+/*
  * @desc Delete product by ID (Admin only)
  * @route DELETE /api/products/:id
  * @access Private/Admin
  */
 const deleteProduct = asyncHandler(async (req, res) => {
-  // 1. Get product id from request params
+  // Get product id from request params
   const { id } = req.params;
 
-  // 2. Check if product exists
+  // Check if product exists
   const product = await Product.findById(id);
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
 
-  // 3. Delete all product images from Cloudinary first
+  // Delete all product images from Cloudinary first
   if (product.images?.length) {
-    const deletePromises = product.images.map(async (image) => {
-      try {
-        await cloudinary.uploader.destroy(image.public_id);
-      } catch (error) {
-        console.error(
-          `Failed to delete image ${image.public_id}:`,
-          error.message
-        );
-      }
-    });
-
-    await Promise.all(deletePromises);
+    try {
+      await Promise.all(
+        product.images.map((image) =>
+          cloudinary.uploader.destroy(image.public_id)
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      throw new ApiError(500, "Failed to delete product images");
+    }
   }
 
-  // 4. Delete product from database
+  // Delete product from database
   await product.deleteOne();
 
-  // 5. Return success response
+  // Return success response
   return sendResponse(res, 200, "Product deleted successfully");
 });
 module.exports = {
