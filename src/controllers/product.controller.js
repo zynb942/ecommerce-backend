@@ -3,7 +3,7 @@ const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-
+const cloudinary = require("../config/cloudinary");
 
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
@@ -178,8 +178,47 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc Delete product by ID (Admin only)
+ * @route DELETE /api/products/:id
+ * @access Private/Admin
+ */
+const deleteProduct = asyncHandler(async (req, res) => {
+  // 1. Get product id from request params
+  const { id } = req.params;
+
+  // 2. Check if product exists
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  // 3. Delete all product images from Cloudinary first
+  if (product.images?.length) {
+    const deletePromises = product.images.map(async (image) => {
+      try {
+        await cloudinary.uploader.destroy(image.public_id);
+      } catch (error) {
+        console.error(
+          `Failed to delete image ${image.public_id}:`,
+          error.message
+        );
+      }
+    });
+
+    await Promise.all(deletePromises);
+  }
+
+  // 4. Delete product from database
+  await product.deleteOne();
+
+  // 5. Return success response
+  return sendResponse(res, 200, "Product deleted successfully");
+});
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
+  deleteProduct,
 };
