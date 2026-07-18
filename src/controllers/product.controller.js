@@ -178,8 +178,53 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc Add a review to a product
+ * @route POST /api/products/:id/reviews
+ * @access Private
+ */
+const addReview = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rating, comment } = req.body;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  const alreadyReviewed = product.reviews.find(
+    (review) => review.user.toString() === req.user._id.toString()
+  );
+
+  if (alreadyReviewed) {
+    throw new ApiError(400, "Already reviewed");
+  }
+
+  const review = {
+    user: req.user._id,
+    username: req.user.username,
+    rating,
+    comment,
+  };
+
+  product.reviews.push(review);
+  product.calcAverageRating();
+
+  await product.save();
+
+  const createdReview = product.reviews[product.reviews.length - 1];
+
+  return sendResponse(res, 201, "Review added successfully", {
+    review: createdReview,
+    averageRating: product.averageRating,
+    numReviews: product.numReviews,
+  });
+});
+
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
+  addReview,
 };
