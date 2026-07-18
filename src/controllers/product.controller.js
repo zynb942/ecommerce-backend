@@ -3,7 +3,7 @@ const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-const ApiError = require("../utils/apiError");
+
 
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
@@ -45,7 +45,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
   }
 
   // sorting criteria based on query parameter
-  let sortCriteria = { createdAt: -1 }; // الترتيب الافتراضي بالأحدث
+  let sortCriteria = { createdAt: -1 }; 
 
   if (req.query.sort) {
     switch (req.query.sort) {

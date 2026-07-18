@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload.middleware");
-const validate = require("../middlewares/validation.middleware");
+
 const {
   getAllProducts,
   getProductReviews,
   createProduct,
 } = require("../controllers/product.controller");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
-const { validate } = require("../middlewares/validation.middleware");
+const validate = require("../middlewares/validation.middleware");
 const {
   productIdSchema,
   createProductSchema,
