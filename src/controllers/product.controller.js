@@ -3,18 +3,18 @@ const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-
+const ApiError = require("../utils/apiError");
 
 const getAllProducts = asyncHandler(async (req, res) => {
-// pagination parameters with default values
-    const page = parseInt(req.query.page, 10) || 1;
+  // pagination parameters with default values
+  const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
 
   // dynamically build the filter object based on query parameters
   const filterObject = { isActive: true };
 
-  // category filter 
+  // category filter
   if (req.query.category) {
     filterObject.category = { $regex: req.query.category, $options: "i" };
   }
@@ -40,7 +40,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
     filterObject.$or = [
       { name: { $regex: req.query.search, $options: "i" } },
       { description: { $regex: req.query.search, $options: "i" } },
-      { brand: { $regex: req.query.search, $options: "i" } }
+      { brand: { $regex: req.query.search, $options: "i" } },
     ];
   }
 
@@ -70,7 +70,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
-      .lean()
+      .lean(),
   ]);
 
   const totalPages = Math.ceil(totalProducts / limit);
@@ -80,12 +80,28 @@ const getAllProducts = asyncHandler(async (req, res) => {
     totalProducts,
     currentPage: page,
     totalPages,
-    products
-
+    products,
   });
 });
 
+// get product reviews
 
+const getProductReviews = asyncHandler(async (req, res) => {
+  const { id } = req.params.id;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "product not found");
+  }
+
+  return sendResponse(res, 200, "reviews retrieved successfully", {
+    averageRating: product.averageRating,
+    numReviews: product.numReviews,
+    reviews: product.reviews,
+    products,
+  });
+});
 
 /**
  * @desc Create new product
@@ -134,7 +150,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
   // Upload images to Cloudinary
   const uploadedImages = await Promise.all(
-    req.files.map((file) => uploadToCloudinary(file, "products"))
+    req.files.map((file) => uploadToCloudinary(file, "products")),
   );
 
   // Create product
@@ -163,6 +179,7 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getAllProducts,
+  getProductReviews,
   createProduct,
-  getAllProducts
 };
