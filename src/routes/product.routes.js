@@ -6,7 +6,9 @@ const validate = require("../middlewares/validation.middleware");
 const { createProductSchema } = require("../validation/product.validation");
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 
-const { createProduct } = require("../controllers/product.controller");
+const { createProduct , getAllProducts } = require("../controllers/product.controller");
+
+router.get("/", getAllProducts);
 
 router.post(
   "/",
