@@ -102,6 +102,50 @@ const createProductSchema = Joi.object({
   abortEarly: false,
   allowUnknown: false,
 });
+
+const productIdSchema = Joi.object({
+  id: Joi.string()
+    .length(24)
+    .hex()
+    .required()
+    .messages({
+      "string.length": "Invalid product ID",
+      "string.hex": "Invalid product ID",
+      "any.required": "Product ID is required",
+    }),
+})
+.options({
+  abortEarly: false,
+  allowUnknown: false,
+});
+
+const addReviewSchema = Joi.object({
+  rating: Joi.number()
+    .min(1)
+    .max(5)
+    .required()
+    .messages({
+      "number.base": "Rating must be a number",
+      "number.min": "Rating must be at least 1",
+      "number.max": "Rating cannot exceed 5",
+      "any.required": "Rating is required",
+    }),
+
+  comment: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      "string.empty": "Comment is required",
+      "any.required": "Comment is required",
+    }),
+})
+.options({
+  abortEarly: false,
+  allowUnknown: false,
+});
+
 module.exports = {
   createProductSchema,
+  productIdSchema,
+  addReviewSchema,
 };
