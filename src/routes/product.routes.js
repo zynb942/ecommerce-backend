@@ -5,10 +5,10 @@ const { protect, allowTo } = require("../middlewares/auth.middleware");
 const { validate } = require("../middlewares/validation.middleware");
 const { productIdSchema } = require("../validation/product.validation");
 // Public Route
-router.get("/products", getAllProducts);
+router.get("/", getAllProducts);
 
 router.get(
-  "products/:id/reviews",
+  "/:id/reviews",
   validate(productIdSchema, "params"),
   getProductReviews,
 );
