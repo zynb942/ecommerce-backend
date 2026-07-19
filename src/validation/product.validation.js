@@ -1,5 +1,7 @@
 const Joi = require("joi");
 
+// here we put our models schema
+
 const createProductSchema = Joi.object({
   name: Joi.string()
     .trim()
@@ -17,7 +19,7 @@ const createProductSchema = Joi.object({
     .required()
     .messages({
       "string.empty": "Short description is required",
-      "string.max": "Short description cannot exceed 500 characters",
+      "string.max": "Short description cannot exceed 500 characters", 
       "any.required": "Short description is required",
     }),
 
@@ -103,31 +105,120 @@ const createProductSchema = Joi.object({
   allowUnknown: false,
 });
 
-const productIdSchema = Joi.object({
-  id: Joi.string()
-    .length(24)
-    .hex()
-    .required()
+const updateProductSchema = Joi.object({
+  name: Joi.string()
+    .trim()
+    .max(200)
+    .optional()
     .messages({
-      "string.length": "Invalid product ID",
-      "string.hex": "Invalid product ID",
-      "any.required": "Product ID is required",
+      "string.max": "Product name cannot exceed 200 characters",
     }),
+
+  shortDescription: Joi.string()
+    .trim()
+    .max(500)
+    .optional()
+    .messages({
+      "string.max": "Short description cannot exceed 500 characters",
+    }),
+
+  description: Joi.string().trim().optional(),
+
+   price: Joi.number()
+    .positive()
+    .optional()
+    .messages({
+      "number.base": "Price must be a number",
+      "number.positive": "Price must be greater than 0",
+    }),
+
+  discountPrice: Joi.number()
+    .min(0)
+    .optional()
+    .messages({
+      "number.base": "Discount price must be a number",
+      "number.min": "Discount price cannot be negative",
+    }),
+
+ stock: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      "number.base": "Stock must be a number",
+      "number.integer": "Stock must be an integer",
+      "number.min": "Stock cannot be negative",
+    }),
+
+  sku: Joi.string().trim().optional(),
+
+  category: Joi.string().trim().optional(),
+
+  subcategory: Joi.string().trim().optional(),
+
+  brand: Joi.string().trim().optional(),
+
+  tags: Joi.alternatives()
+    .try(
+      Joi.array().items(Joi.string().trim()),
+      Joi.string()
+    )
+    .optional()
+    .messages({
+      "alternatives.match":
+        "Tags must be an array or a JSON string",
+    }),
+
+  featured: Joi.boolean()
+    .optional()
+    .messages({
+      "boolean.base": "Featured must be true or false",
+    }),
+
+
+   isActive: Joi.boolean()
+    .optional()
+    .messages({
+      "boolean.base": "isActive must be true or false",
+    }),
+
+  deletedImages: Joi.alternatives()
+  .try(
+    Joi.array().items(Joi.string()),
+    Joi.string().trim()
+  )
+  .optional()
+  .messages({
+    "alternatives.match":
+      "deletedImages must be an array or a JSON string",
+  }),
+  
 })
-.options({
-  abortEarly: false,
-  allowUnknown: false,
-});
+.custom((value, helpers) => {
+  if (
+    value.discountPrice !== undefined &&
+    value.price !== undefined &&
+    value.discountPrice > value.price
+  ) {
+    return helpers.message(
+      "Discount price cannot exceed product price"
+    );
+  }
+
+  return value;
+  });
 
 const addReviewSchema = Joi.object({
   rating: Joi.number()
+    .integer()
     .min(1)
     .max(5)
     .required()
     .messages({
       "number.base": "Rating must be a number",
+      "number.integer": "Rating must be an integer",
       "number.min": "Rating must be at least 1",
-      "number.max": "Rating cannot exceed 5",
+      "number.max": "Rating cannot be more than 5",
       "any.required": "Rating is required",
     }),
 
@@ -138,14 +229,24 @@ const addReviewSchema = Joi.object({
       "string.empty": "Comment is required",
       "any.required": "Comment is required",
     }),
-})
-.options({
-  abortEarly: false,
-  allowUnknown: false,
 });
 
+const productIdSchema = Joi.object({
+  id: Joi.string()
+    .hex()
+    .length(24)
+    .required()
+    .messages({
+      "string.base": "Product ID must be a string",
+      "string.empty": "Product ID is required",
+      "string.hex": "Invalid product ID format (must be a valid MongoDB ObjectId)",
+      "string.length": "Product ID must be exactly 24 characters",
+      "any.required": "Product ID is required",
+    }),
+});
 module.exports = {
   createProductSchema,
+  updateProductSchema,
   productIdSchema,
   addReviewSchema,
 };
