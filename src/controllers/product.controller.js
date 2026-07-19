@@ -1,9 +1,10 @@
 const Product = require("../models/product.model");
 const uploadToCloudinary = require("../utils/uploadToCloudinary");
+const cloudinary = require("../config/cloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-
+const cloudinary = require("../config/cloudinary");
 
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
@@ -87,7 +88,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 // get product reviews
 
 const getProductReviews = asyncHandler(async (req, res) => {
-  const { id } = req.params.id;
+  const { id } = req.params;
 
   const product = await Product.findById(id);
 
@@ -99,7 +100,6 @@ const getProductReviews = asyncHandler(async (req, res) => {
     averageRating: product.averageRating,
     numReviews: product.numReviews,
     reviews: product.reviews,
-    products,
   });
 });
 
@@ -181,18 +181,213 @@ const createProduct = asyncHandler(async (req, res) => {
 const getProductById = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const product = await Product.findById(id).populate("createdBy", "username email avatar");
+  
+    if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+  
+   return sendResponse(res, 200,"Product retrieved successfully", { product });
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+   const product = await Product.findById(id);
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
 
-  return sendResponse(res, 200, "Success", { product });
+   let {
+    name,
+    shortDescription,
+    description,
+    price,
+    discountPrice,
+    stock,
+    sku,
+    category,
+    subcategory,
+    brand,
+    tags,
+    featured,
+    isActive,
+    deletedImages,
+  } = req.body;
+
+  // convert tags to array
+  if (typeof tags === "string") {
+    try {
+      tags = JSON.parse(tags);
+    } catch {
+      tags = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+  }
+
+  // update only sent fields
+  product.name = name ?? product.name;
+  product.shortDescription = shortDescription ?? product.shortDescription;
+  product.description = description ?? product.description;
+  product.price = price ?? product.price;
+  product.discountPrice = discountPrice ?? product.discountPrice;
+  product.stock = stock ?? product.stock;
+  product.sku = sku ?? product.sku;
+  product.category = category ?? product.category;
+  product.subcategory = subcategory ?? product.subcategory;
+  product.brand = brand ?? product.brand;
+  product.tags = tags ?? product.tags;
+  product.featured = featured ?? product.featured;
+  product.isActive = isActive ?? product.isActive;
+  
+   // upload new images  
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = await Promise.all(
+      req.files.map((file) => uploadToCloudinary(file, "products"))
+    );
+
+    product.images.push(...uploadedImages);
+  }
+ 
+  // delete selected images
+  let imagesToDelete = deletedImages;
+
+  if (typeof imagesToDelete === "string") {
+  try {
+    imagesToDelete = JSON.parse(imagesToDelete);
+  } catch {
+    throw new ApiError(
+      400,
+      "deletedImages must be a valid JSON array"
+    );
+  }
+}
+if (Array.isArray(imagesToDelete)) {
+  for (const publicId of imagesToDelete) {
+    const imageExists = product.images.some(
+      (img) => img.public_id === publicId
+    );
+
+    if (!imageExists) continue;
+
+    await cloudinary.uploader.destroy(publicId);
+
+    product.images = product.images.filter(
+      (img) => img.public_id !== publicId
+    );
+  }
+}
+  
+   if ( product.discountPrice > product.price) {
+  throw new ApiError(
+    400,
+    "Discount price cannot exceed product price"
+  );
+}
+
+  if (product.images.length === 0) {
+  throw new ApiError(
+    400,
+    "Product must have at least one image"
+  );
+}
+
+  await product.save();
+
+  return sendResponse(res, 200, "Product updated successfully", {
+    product,
+  });
+});
+  
+  
+/**
+ * @desc Add a review to a product
+ * @route POST /api/products/:id/reviews
+ * @access Private
+*/
+const addReview = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
+
+    const alreadyReviewed = product.reviews.find(
+        (review) => review.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+        throw new ApiError(400, "Already reviewed");
+    }
+
+    const review = {
+        user: req.user._id,
+        username: req.user.username,
+        rating: req.body.rating,
+        comment: req.body.comment,
+    };
+
+    product.reviews.push(review);
+
+    product.calcAverageRating();
+
+    await product.save();
+
+    return sendResponse(res, 201, "Review added successfully", {
+        review,
+        averageRating: product.averageRating,
+        numReviews: product.numReviews,
+    });
+
 });
 
 
+/**
+ * @desc Delete product by ID (Admin only)
+ * @route DELETE /api/products/:id
+ * @access Private/Admin
+ */
+const deleteProduct = asyncHandler(async (req, res) => {
+  // Get product id from request params
+  const { id } = req.params;
+
+  // Check if product exists
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  // Delete all product images from Cloudinary first
+  if (product.images?.length) {
+    try {
+      await Promise.all(
+        product.images.map((image) =>
+          cloudinary.uploader.destroy(image.public_id)
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      throw new ApiError(500, "Failed to delete product images");
+    }
+  }
+
+  // Delete product from database
+  await product.deleteOne();
+
+  // Return success response
+  return sendResponse(res, 200, "Product deleted successfully");
+});
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
   getProductById,
+  deleteProduct,
+  updateProduct,
+  addReview,
 };

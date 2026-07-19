@@ -28,6 +28,11 @@ const reviewSchema = new mongoose.Schema(
       required: [true, "User is required"]
     },
 
+    username: {
+      type: String,
+      required: true,
+    },
+
     rating: {
       type: Number,
       required: true,
