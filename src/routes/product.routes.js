@@ -7,12 +7,18 @@ const {
   getProductReviews,
   createProduct,
   deleteProduct,
+  updateProduct,
+  addReview,
 } = require("../controllers/product.controller");
+
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
+
 const {
   productIdSchema,
   createProductSchema,
+  updateProductSchema,
+  addReviewSchema,
 } = require("../validation/product.validation");
 // Public Route
 router.get("/", getAllProducts);
@@ -32,7 +38,25 @@ router.post(
   createProduct,
 );
 
-router.delete(
+  router.patch(
+  "/update/:id",
+  protect,
+  allowTo("admin"),
+  upload.array("images", 5),
+  validate(productIdSchema, "params"),
+  validate(updateProductSchema),
+  updateProduct
+);
+ 
+router.post(
+  "/:id/reviews",
+  protect,
+  validate(productIdSchema, "params"),
+  validate(addReviewSchema),
+  addReview
+);
+  
+  router.delete(
   "/:id",
   protect,
   allowTo("admin"),
