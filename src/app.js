@@ -12,4 +12,5 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes);
 app.use(errorHandler);
 app.use("/api/products", productRoutes);
+
 module.exports = app;

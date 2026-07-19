@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload.middleware");
-const { getProductById } = require("../controllers/product.controller");
 const {
   getAllProducts,
   getProductReviews,
@@ -10,6 +9,7 @@ const {
   deleteProduct,
   updateProduct,
   addReview,
+  searchProducts
 } = require("../controllers/product.controller");
 
 const { protect, allowTo } = require("../middlewares/auth.middleware");
@@ -24,6 +24,9 @@ const {
 
 // Public Route
 router.get("/", getAllProducts);
+
+// GET /products/search
+router.get('/search', searchProducts)
 
 router.get(
   "/:id/reviews",
