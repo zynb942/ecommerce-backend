@@ -231,28 +231,47 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.featured = featured ?? product.featured;
   product.isActive = isActive ?? product.isActive;
 
+  if (
+  product.discountPrice !== undefined &&
+  product.discountPrice > product.price
+) {
+  throw new ApiError(
+    400,
+    "Discount price cannot exceed product price"
+  );
+}
+
   // delete selected images
-  if (deletedImages) {
-    let imagesToDelete = deletedImages;
+  let imagesToDelete = deletedImages;
 
-    if (typeof imagesToDelete === "string") {
-      try {
-        imagesToDelete = JSON.parse(imagesToDelete);
-      } catch {
-        imagesToDelete = [imagesToDelete];
-      }
-    }
-
-    for (const publicId of imagesToDelete) {
-      await cloudinary.uploader.destroy(publicId);
-
-      product.images = product.images.filter(
-        (img) => img.public_id !== publicId
-      );
-    }
+  if (typeof imagesToDelete === "string") {
+  try {
+    imagesToDelete = JSON.parse(imagesToDelete);
+  } catch {
+    throw new ApiError(
+      400,
+      "deletedImages must be a valid JSON array"
+    );
   }
+}
+if (Array.isArray(imagesToDelete)) {
+  for (const publicId of imagesToDelete) {
+    const imageExists = product.images.some(
+      (img) => img.public_id === publicId
+    );
 
-  // upload new images
+    if (!imageExists) continue;
+
+    await cloudinary.uploader.destroy(publicId);
+
+    product.images = product.images.filter(
+      (img) => img.public_id !== publicId
+    );
+  }
+}
+
+
+  // upload new images  
   if (req.files && req.files.length > 0) {
     const uploadedImages = await Promise.all(
       req.files.map((file) => uploadToCloudinary(file, "products"))
@@ -260,6 +279,12 @@ const updateProduct = asyncHandler(async (req, res) => {
 
     product.images.push(...uploadedImages);
   }
+  if (product.images.length === 0) {
+  throw new ApiError(
+    400,
+    "Product must have at least one image"
+  );
+}
 
   await product.save();
 
