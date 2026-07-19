@@ -3,6 +3,7 @@ const uploadToCloudinary = require("../utils/uploadToCloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
+const { getSortQuery, getPagination, addRegexFilter, addTagsFilter, addPriceFilter } = require('./helpers.js')
 
 
 const getAllProducts = asyncHandler(async (req, res) => {
@@ -222,9 +223,75 @@ const addReview = asyncHandler(async (req, res) => {
   });
 });
 
+
+
+//#region Search Products Controller
+/**
+ * @description Search & filter Products
+ * @route GET /products/search
+ * @access Public
+ * @param { Object } Express request object
+ * @param { Object } Express response object
+ * @param { NextFunction } Express next middleware function for error handling
+ * @returns { Promise<object> } Express response JSON object with products and pagination data
+ */
+const searchProducts = asyncHandler(async (request, response)=>{
+  const { search, category, subcategory, brand, tags, minPrice,
+    maxPrice, sort, page = 1, limit = 10 } = request.query
+  
+  // Only active products
+  const filter = { isActive: true }
+
+  // Text Search Filter ($or with case-insensitive regex)
+  if(search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' }},
+      { description: { $regex: search, $options: 'i' }},
+      { brand: { $regex: search, $options: 'i' }}
+    ]
+  }
+
+  // Regex filters
+  addRegexFilter(filter, 'category', category)
+  addRegexFilter(filter, 'subcategory', subcategory)
+  addRegexFilter(filter, 'brand', brand)
+  
+
+  // Tags Filter & convert string Text to Array: 'wireless,audio' => ['wireless', 'audio']
+  addTagsFilter(filter, tags)
+  addPriceFilter(filter, minPrice, maxPrice)
+
+  // Resolve Sorting Query using the local helper
+  const sortQuery = getSortQuery(sort)
+
+  // Pagination Setup
+  const { currentPage, limitPerPage, skip } = getPagination(page, limit)
+
+  // Fetch products (Optimized with lean())
+  const [totalProducts, products] = await Promise.all([
+    Product.countDocuments(filter), 
+    Product.find(filter)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limitPerPage)
+      .lean()
+  ])
+
+  const totalPages = Math.ceil(totalProducts / limitPerPage)
+
+  return sendResponse(response, 200, 'Products fetched successfully..', {
+    totalProducts,
+    currentPage,
+    totalPages, 
+    products
+  })
+})
+//#endregion
+
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
   addReview,
+  searchProducts
 };
