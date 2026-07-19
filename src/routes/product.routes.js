@@ -6,6 +6,7 @@ const {
   getAllProducts,
   getProductReviews,
   createProduct,
+  deleteProduct,
   updateProduct,
   addReview,
 } = require("../controllers/product.controller");
@@ -19,7 +20,6 @@ const {
   updateProductSchema,
   addReviewSchema,
 } = require("../validation/product.validation");
-
 // Public Route
 router.get("/", getAllProducts);
 
@@ -47,14 +47,21 @@ router.post(
   validate(updateProductSchema),
   updateProduct
 );
-  
-  
+ 
 router.post(
   "/:id/reviews",
   protect,
   validate(productIdSchema, "params"),
   validate(addReviewSchema),
-  addReview,
+  addReview
+);
+  
+  router.delete(
+  "/:id",
+  protect,
+  allowTo("admin"),
+  validate(productIdSchema, "params"),
+  deleteProduct,
 );
 
 module.exports = router;

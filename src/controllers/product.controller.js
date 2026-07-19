@@ -4,7 +4,7 @@ const cloudinary = require("../config/cloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-
+const cloudinary = require("../config/cloudinary");
 
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
@@ -295,50 +295,87 @@ if (Array.isArray(imagesToDelete)) {
  * @desc Add a review to a product
  * @route POST /api/products/:id/reviews
  * @access Private
- */
+*/
 const addReview = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { rating, comment } = req.body;
+    const { id } = req.params;
 
+    const product = await Product.findById(id);
+
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
+
+    const alreadyReviewed = product.reviews.find(
+        (review) => review.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+        throw new ApiError(400, "Already reviewed");
+    }
+
+    const review = {
+        user: req.user._id,
+        username: req.user.username,
+        rating: req.body.rating,
+        comment: req.body.comment,
+    };
+
+    product.reviews.push(review);
+
+    product.calcAverageRating();
+
+    await product.save();
+
+    return sendResponse(res, 201, "Review added successfully", {
+        review,
+        averageRating: product.averageRating,
+        numReviews: product.numReviews,
+    });
+
+});
+
+
+/**
+ * @desc Delete product by ID (Admin only)
+ * @route DELETE /api/products/:id
+ * @access Private/Admin
+ */
+const deleteProduct = asyncHandler(async (req, res) => {
+  // Get product id from request params
+  const { id } = req.params;
+
+  // Check if product exists
   const product = await Product.findById(id);
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
 
-  const alreadyReviewed = product.reviews.find(
-    (review) => review.user.toString() === req.user._id.toString()
-  );
-
-  if (alreadyReviewed) {
-    throw new ApiError(400, "Already reviewed");
+  // Delete all product images from Cloudinary first
+  if (product.images?.length) {
+    try {
+      await Promise.all(
+        product.images.map((image) =>
+          cloudinary.uploader.destroy(image.public_id)
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      throw new ApiError(500, "Failed to delete product images");
+    }
   }
 
-  const review = {
-    user: req.user._id,
-    username: req.user.username,
-    rating,
-    comment,
-  };
+  // Delete product from database
+  await product.deleteOne();
 
-  product.reviews.push(review);
-  product.calcAverageRating();
-
-  await product.save();
-
-  const createdReview = product.reviews[product.reviews.length - 1];
-
-  return sendResponse(res, 201, "Review added successfully", {
-    review: createdReview,
-    averageRating: product.averageRating,
-    numReviews: product.numReviews,
-  });
+  // Return success response
+  return sendResponse(res, 200, "Product deleted successfully");
 });
-
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
+  deleteProduct,
   updateProduct,
   addReview,
 };

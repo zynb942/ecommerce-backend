@@ -206,31 +206,17 @@ const updateProductSchema = Joi.object({
   return value;
   });
 
-const productIdSchema = Joi.object({
-  id: Joi.string()
-    .length(24)
-    .hex()
-    .required()
-    .messages({
-      "string.length": "Invalid product ID",
-      "string.hex": "Invalid product ID",
-      "any.required": "Product ID is required",
-    }),
-})
-.options({
-  abortEarly: false,
-  allowUnknown: false,
-});
-
 const addReviewSchema = Joi.object({
   rating: Joi.number()
+    .integer()
     .min(1)
     .max(5)
     .required()
     .messages({
       "number.base": "Rating must be a number",
+      "number.integer": "Rating must be an integer",
       "number.min": "Rating must be at least 1",
-      "number.max": "Rating cannot exceed 5",
+      "number.max": "Rating cannot be more than 5",
       "any.required": "Rating is required",
     }),
 
@@ -241,12 +227,21 @@ const addReviewSchema = Joi.object({
       "string.empty": "Comment is required",
       "any.required": "Comment is required",
     }),
-})
-.options({
-  abortEarly: false,
-  allowUnknown: false,
 });
 
+const productIdSchema = Joi.object({
+  id: Joi.string()
+    .hex()
+    .length(24)
+    .required()
+    .messages({
+      "string.base": "Product ID must be a string",
+      "string.empty": "Product ID is required",
+      "string.hex": "Invalid product ID format (must be a valid MongoDB ObjectId)",
+      "string.length": "Product ID must be exactly 24 characters",
+      "any.required": "Product ID is required",
+    }),
+});
 module.exports = {
   createProductSchema,
   updateProductSchema,
