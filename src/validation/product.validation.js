@@ -1,5 +1,7 @@
 const Joi = require("joi");
 
+// here we put our models schema
+
 const createProductSchema = Joi.object({
   name: Joi.string()
     .trim()

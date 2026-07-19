@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload.middleware");
-
+const { getProductById } = require("../controllers/product.controller");
 const {
   getAllProducts,
   getProductReviews,
   createProduct,
+  getProductById,
   deleteProduct,
   updateProduct,
   addReview,
@@ -20,6 +21,7 @@ const {
   updateProductSchema,
   addReviewSchema,
 } = require("../validation/product.validation");
+
 // Public Route
 router.get("/", getAllProducts);
 
@@ -27,6 +29,12 @@ router.get(
   "/:id/reviews",
   validate(productIdSchema, "params"),
   getProductReviews,
+);
+
+router.get(
+  "/:id", 
+  validate(productIdSchema, "params"),
+   getProductById
 );
 
 router.post(

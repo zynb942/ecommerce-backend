@@ -178,6 +178,17 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
+const getProductById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const product = await Product.findById(id).populate("createdBy", "username email avatar");
+  
+    if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+  
+   return sendResponse(res, 200,"Product retrieved successfully", { product });
+});
+
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
@@ -375,6 +386,7 @@ module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
+  getProductById,
   deleteProduct,
   updateProduct,
   addReview,
