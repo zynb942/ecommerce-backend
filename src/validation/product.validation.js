@@ -102,51 +102,95 @@ const createProductSchema = Joi.object({
   abortEarly: false,
   allowUnknown: false,
 });
-const productIdSchema = Joi.object({
-  id: Joi.string()
-    .hex()
-    .length(24)
-    .required()
-    .messages({
-      "string.base": "Product id must be a string",
-      "string.empty": "Product id is required",
-      "string.hex": "Invalid product id",
-      "string.length": "Invalid product id",
-      "any.required": "Product id is required",
-    }),
-});
 
 const updateProductSchema = Joi.object({
-  name: Joi.string().trim().max(200),
+  name: Joi.string()
+    .trim()
+    .max(200)
+    .optional()
+    .messages({
+      "string.max": "Product name cannot exceed 200 characters",
+    }),
 
-  shortDescription: Joi.string().trim().max(500),
+  shortDescription: Joi.string()
+    .trim()
+    .max(500)
+    .optional()
+    .messages({
+      "string.max": "Short description cannot exceed 500 characters",
+    }),
 
-  description: Joi.string().trim(),
+  description: Joi.string().trim().optional(),
 
-  price: Joi.number().positive(),
+   price: Joi.number()
+    .positive()
+    .optional()
+    .messages({
+      "number.base": "Price must be a number",
+      "number.positive": "Price must be greater than 0",
+    }),
 
-  discountPrice: Joi.number().min(0),
+  discountPrice: Joi.number()
+    .min(0)
+    .optional()
+    .messages({
+      "number.base": "Discount price must be a number",
+      "number.min": "Discount price cannot be negative",
+    }),
 
-  stock: Joi.number().integer().min(0),
+ stock: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      "number.base": "Stock must be a number",
+      "number.integer": "Stock must be an integer",
+      "number.min": "Stock cannot be negative",
+    }),
 
-  sku: Joi.string().trim(),
+  sku: Joi.string().trim().optional(),
 
-  category: Joi.string().trim(),
+  category: Joi.string().trim().optional(),
 
-  subcategory: Joi.string().trim(),
+  subcategory: Joi.string().trim().optional(),
 
-  brand: Joi.string().trim(),
+  brand: Joi.string().trim().optional(),
 
-  tags: Joi.alternatives().try(
-    Joi.array().items(Joi.string().trim()),
-    Joi.string()
-  ),
+  tags: Joi.alternatives()
+    .try(
+      Joi.array().items(Joi.string().trim()),
+      Joi.string()
+    )
+    .optional()
+    .messages({
+      "alternatives.match":
+        "Tags must be an array or a JSON string",
+    }),
 
-  featured: Joi.boolean(),
+  featured: Joi.boolean()
+    .optional()
+    .messages({
+      "boolean.base": "Featured must be true or false",
+    }),
 
-  isActive: Joi.boolean(),
 
-  deletedImages: Joi.array().items(Joi.string()),
+   isActive: Joi.boolean()
+    .optional()
+    .messages({
+      "boolean.base": "isActive must be true or false",
+    }),
+
+  deletedImages: Joi.alternatives()
+  .try(
+    Joi.array().items(Joi.string()),
+    Joi.string().trim()
+  )
+  .optional()
+  .messages({
+    "alternatives.match":
+      "deletedImages must be an array or a JSON string",
+  }),
+  
 })
 .custom((value, helpers) => {
   if (
@@ -160,6 +204,43 @@ const updateProductSchema = Joi.object({
   }
 
   return value;
+  });
+
+const productIdSchema = Joi.object({
+  id: Joi.string()
+    .length(24)
+    .hex()
+    .required()
+    .messages({
+      "string.length": "Invalid product ID",
+      "string.hex": "Invalid product ID",
+      "any.required": "Product ID is required",
+    }),
+})
+.options({
+  abortEarly: false,
+  allowUnknown: false,
+});
+
+const addReviewSchema = Joi.object({
+  rating: Joi.number()
+    .min(1)
+    .max(5)
+    .required()
+    .messages({
+      "number.base": "Rating must be a number",
+      "number.min": "Rating must be at least 1",
+      "number.max": "Rating cannot exceed 5",
+      "any.required": "Rating is required",
+    }),
+
+  comment: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      "string.empty": "Comment is required",
+      "any.required": "Comment is required",
+    }),
 })
 .options({
   abortEarly: false,
@@ -170,4 +251,5 @@ module.exports = {
   createProductSchema,
   updateProductSchema,
   productIdSchema,
+  addReviewSchema,
 };

@@ -180,14 +180,14 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
-  const product = await Product.findById(id);
+  
+   const product = await Product.findById(id);
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
 
-  let {
+   let {
     name,
     shortDescription,
     description,
@@ -230,17 +230,16 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.tags = tags ?? product.tags;
   product.featured = featured ?? product.featured;
   product.isActive = isActive ?? product.isActive;
+  
+   // upload new images  
+  if (req.files && req.files.length > 0) {
+    const uploadedImages = await Promise.all(
+      req.files.map((file) => uploadToCloudinary(file, "products"))
+    );
 
-  if (
-  product.discountPrice !== undefined &&
-  product.discountPrice > product.price
-) {
-  throw new ApiError(
-    400,
-    "Discount price cannot exceed product price"
-  );
-}
-
+    product.images.push(...uploadedImages);
+  }
+ 
   // delete selected images
   let imagesToDelete = deletedImages;
 
@@ -269,16 +268,14 @@ if (Array.isArray(imagesToDelete)) {
     );
   }
 }
+  
+   if ( product.discountPrice > product.price) {
+  throw new ApiError(
+    400,
+    "Discount price cannot exceed product price"
+  );
+}
 
-
-  // upload new images  
-  if (req.files && req.files.length > 0) {
-    const uploadedImages = await Promise.all(
-      req.files.map((file) => uploadToCloudinary(file, "products"))
-    );
-
-    product.images.push(...uploadedImages);
-  }
   if (product.images.length === 0) {
   throw new ApiError(
     400,
@@ -292,9 +289,56 @@ if (Array.isArray(imagesToDelete)) {
     product,
   });
 });
+  
+  
+/**
+ * @desc Add a review to a product
+ * @route POST /api/products/:id/reviews
+ * @access Private
+ */
+const addReview = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rating, comment } = req.body;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  const alreadyReviewed = product.reviews.find(
+    (review) => review.user.toString() === req.user._id.toString()
+  );
+
+  if (alreadyReviewed) {
+    throw new ApiError(400, "Already reviewed");
+  }
+
+  const review = {
+    user: req.user._id,
+    username: req.user.username,
+    rating,
+    comment,
+  };
+
+  product.reviews.push(review);
+  product.calcAverageRating();
+
+  await product.save();
+
+  const createdReview = product.reviews[product.reviews.length - 1];
+
+  return sendResponse(res, 201, "Review added successfully", {
+    review: createdReview,
+    averageRating: product.averageRating,
+    numReviews: product.numReviews,
+  });
+});
+
 module.exports = {
   getAllProducts,
   getProductReviews,
   createProduct,
   updateProduct,
+  addReview,
 };
