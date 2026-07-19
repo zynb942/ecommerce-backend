@@ -6,13 +6,17 @@ const {
   getAllProducts,
   getProductReviews,
   createProduct,
+  updateProduct,
   addReview,
 } = require("../controllers/product.controller");
+
 const { protect, allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
+
 const {
   productIdSchema,
   createProductSchema,
+  updateProductSchema,
   addReviewSchema,
 } = require("../validation/product.validation");
 
@@ -34,6 +38,17 @@ router.post(
   createProduct,
 );
 
+  router.patch(
+  "/update/:id",
+  protect,
+  allowTo("admin"),
+  upload.array("images", 5),
+  validate(productIdSchema, "params"),
+  validate(updateProductSchema),
+  updateProduct
+);
+  
+  
 router.post(
   "/:id/reviews",
   protect,
