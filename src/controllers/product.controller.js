@@ -461,6 +461,13 @@ const deleteReview = asyncHandler(async (req, res) => {
     throw new ApiError(400, " there is no review with such id");
   }
 
+  const isOwner = review.user.equals(req.user._id);
+  const isAdmin = req.user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    throw new ApiError(403, "You are not authorized to delete this review");
+  }
+
   product.reviews.id(reviewId).deleteOne();
 
   product.calcAverageRating();
