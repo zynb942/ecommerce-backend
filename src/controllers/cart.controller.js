@@ -41,8 +41,12 @@ const addItemToCart = asyncHandler(async (req, res) => {
   await product.save();
   await cart.save();
   return sendResponse(res, 200, "Item added to cart successfully", {
-    cart,
-  });
+  itemCount: cart.itemCount,
+  subtotal: cart.subtotal,
+  discountAmount: cart.discountAmount,
+  total: cart.total,
+  items: cart.items,
+});
 });
 
 module.exports = {
