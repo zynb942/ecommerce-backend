@@ -104,15 +104,18 @@ const applyCoupon = asyncHandler(async (req, res) => {
   return sendResponse(
     res,
     200,
-    "Coupon applied successfully",
+    `Coupon applied - you save ${
+    cart.coupon.discountType === "percentage"
+      ? `${cart.coupon.discountValue}%`
+      : cart.coupon.discountValue
+  }`,
     {
-      coupon: cart.coupon,
-      subtotal: cart.subtotal,
-      discountAmount: cart.discountAmount,
-      total: cart.total,
-      itemCount: cart.itemCount,
-      items: cart.items,
-    }
+  itemCount: cart.itemCount,
+  subtotal: cart.subtotal,
+  discountAmount: cart.discountAmount,
+  total: cart.total,
+  coupon: cart.coupon.code, 
+}
   );
 });
 module.exports = {
