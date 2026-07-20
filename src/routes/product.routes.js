@@ -21,6 +21,7 @@ const {
   createProductSchema,
   updateProductSchema,
   addReviewSchema,
+  reviewIdSchema,
 } = require("../validation/product.validation");
 
 // Public Route
