@@ -12,15 +12,11 @@ const getCart = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Read the authenticated user's ID from req.user
 
   // Find the cart belonging to the user and populate product details within item array
-  let cart = await Cart.findOne({ user: userId }).populate({
-    path: "items.product",
-    select: "name price images stock category brand",
-  });
+  let cart = await Cart.findOne({ user: userId });
 
   // If no cart exists, return an empty cart template matching structural schemas
   if (!cart) {
     return sendResponse(res, 200, "cart retrieved successfully", {
-      user: userId,
       items: [],
       coupon: null,
       subtotal: 0,
@@ -32,14 +28,13 @@ const getCart = asyncHandler(async (req, res) => {
 
   // Return existing cart populated.
   return sendResponse(res, 200, "cart retrieved successfully", {
-    _id: cart._id,
-    user: cart.user,
-    items: cart.items,
-    coupon: cart.coupon,
+    itemCount: cart.itemCount,
     subtotal: cart.subtotal,
     discountAmount: cart.discountAmount,
     total: cart.total,
-    itemCount: cart.itemCount,
+    coupon: cart.coupon ? cart.coupon.code : null, 
+    items: cart.items
+
   });
 });
 
