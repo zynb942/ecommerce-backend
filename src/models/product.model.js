@@ -165,7 +165,7 @@ const productSchema = new mongoose.Schema(
 );
 
 
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       lower: true,
@@ -173,7 +173,6 @@ productSchema.pre("save", function (next) {
     });
   }
 
-  next();
 });
 
 productSchema.methods.calcAverageRating = function () {
