@@ -9,10 +9,12 @@ const ApiError = require("../utils/apiError");
  * access: Private
  */
 const getCart = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.user._id; // Read the authenticated user's ID from req.user
 
+  // Find the cart belonging to the user
   let cart = await Cart.findOne({ user: userId });
 
+  // If no cart exists, return an empty cart template
   if (!cart) {
     return sendResponse(res, 200, "cart retrieved successfully", {
       items: [],
@@ -24,6 +26,7 @@ const getCart = asyncHandler(async (req, res) => {
     });
   }
 
+  // Return existing cart
   return sendResponse(res, 200, "cart retrieved successfully", {
     itemCount: cart.itemCount,
     subtotal: cart.subtotal,
@@ -52,11 +55,12 @@ const removeCoupon = asyncHandler(async (req, res) => {
 
   await cart.save();
 
-return sendResponse(res, 200, "Coupon removed", {
-  subtotal: cart.subtotal,
-  total: cart.total,
+  return sendResponse(res, 200, "Coupon removed", {
+    subtotal: cart.subtotal,
+    total: cart.total,
+  });
 });
-});
+
 module.exports = {
   getCart,
   removeCoupon,
