@@ -1,9 +1,15 @@
 const express = require("express");
-const router = express.Router();
-const { getCart } = require("../controllers/cart.controller");
-const { protect } = require("../middlewares/auth.middleware"); 
 
-// Add secure endpoint to fetch user specific cart
+const { protect } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validation.middleware");
+
+const { addToCartSchema } = require("../validation/cart.validation");
+const { addItemToCart , getCart } = require("../controllers/cart.controller");
+
+const router = express.Router();
+
 router.get("/", protect, getCart);
+
+router.post("/items", protect, validate(addToCartSchema), addItemToCart);
 
 module.exports = router;

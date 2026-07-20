@@ -11,9 +11,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes);
-app.use(errorHandler);
 app.use("/api/products", productRoutes);
-app.use("/api/v1/carts", cartRouter);
-
-
+app.use("/api/carts", cartRoutes);
+app.use(errorHandler);
 module.exports = app;
