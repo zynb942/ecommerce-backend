@@ -4,9 +4,11 @@ const { protect } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 
 const { addToCartSchema } = require("../validation/cart.validation");
-const { addItemToCart } = require("../controllers/cart.controller");
+const { addItemToCart , getCart } = require("../controllers/cart.controller");
 
 const router = express.Router();
+
+router.get("/", protect, getCart);
 
 router.post("/items", protect, validate(addToCartSchema), addItemToCart);
 

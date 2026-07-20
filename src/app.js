@@ -2,8 +2,8 @@ const express = require("express");
 const authRoutes = require('./routes/auth.routes.js')
 const userRoutes = require('./routes/user.routes.js');
 const errorHandler = require('./middlewares/errorHandler.js')
+const cartRouter = require("./routes/cart.routes");
 const productRoutes = require("./routes/product.routes");
-const cartRoutes = require("./routes/cart.routes");
 
 const app = express();
 
