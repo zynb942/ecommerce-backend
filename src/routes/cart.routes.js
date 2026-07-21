@@ -7,7 +7,7 @@ const { addToCartSchema , applyCouponSchema ,cartProductIdSchema} = require("../
 
 const router = express.Router();
 
-const { getCart, removeCoupon , addItemToCart , applyCoupon, removeCartItem} = require("../controllers/cart.controller");
+const { getCart, removeCoupon , addItemToCart , applyCoupon, removeCartItem , clearCart} = require("../controllers/cart.controller");
 
 
 // Get current user's cart
@@ -25,6 +25,8 @@ router.delete(
 // Remove applied coupon
 router.delete("/coupon", protect, removeCoupon);
 
+//ClearCart
+router.delete("/clear", protect, clearCart);
 router.post( "/coupon", protect, validate(applyCouponSchema), applyCoupon);
 
 module.exports = router;

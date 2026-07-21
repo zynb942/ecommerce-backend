@@ -228,10 +228,43 @@ const applyCoupon = asyncHandler(async (req, res) => {
 }
   );
 });
+
+
+ /**
+ * @desc Clear user's cart and restore product stocks
+ * @route DELETE /api/carts/clear
+ * @access Private
+ */
+const clearCart = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+   const cart = await Cart.findOne({  user: userId });
+
+    if (!cart) {
+        return next(
+            new ApiError(404, "Cart not found")
+        );
+    }
+  
+  for (const item of cart.items) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { stock: item.quantity },
+    });
+  }
+
+  cart.items = [];
+  cart.coupon = null;
+
+  await cart.save();
+
+  return sendResponse(res, 200, "Cart cleared successfully");
+});
+
+
 module.exports = {
   getCart,
   applyCoupon,
   removeCoupon,
   addItemToCart,
+  clearCart,
   removeCartItem,
 };
