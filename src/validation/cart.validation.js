@@ -1,7 +1,6 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
-<<<<<<< HEAD
 // here we put our models schema
 const cartSchema = Joi.object({});
 
@@ -9,10 +8,6 @@ const cartProductIdSchema = Joi.object({
   productId: Joi.string().hex().length(24).required(),
 });
 
-module.exports = {
-  cartSchema,
-  cartProductIdSchema,
-=======
 const addToCartSchema = Joi.object({
   productId: Joi.string()
     .required()
@@ -40,6 +35,7 @@ const addToCartSchema = Joi.object({
 });
 
 module.exports = {
+  cartSchema,
+  cartProductIdSchema,
   addToCartSchema,
->>>>>>> main
 };
