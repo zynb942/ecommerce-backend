@@ -1,6 +1,21 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
+// here we put our models schema
+const applyCouponSchema = Joi.object({
+  code: Joi.string()
+    .trim()
+    .uppercase()
+    .required()
+    .messages({
+      "string.base": "Coupon code must be a string",
+      "string.empty": "Coupon code is required",
+      "string.uppercase": "Coupon code must be uppercase",
+      "any.required": "Coupon code is required",
+       })
+    })
+
+
 const addToCartSchema = Joi.object({
   productId: Joi.string()
     .required()
@@ -29,4 +44,5 @@ const addToCartSchema = Joi.object({
 
 module.exports = {
   addToCartSchema,
+  applyCouponSchema 
 };
