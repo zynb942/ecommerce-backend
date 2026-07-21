@@ -241,7 +241,7 @@ const login = asyncHandler(async (req, res) => {
       id: user._id,
       
     },
-     _config.JWT_SECRET, 
+      _config.JWT_SECRET, 
     {
       expiresIn: _config.JWT_EXPIRE,
     }

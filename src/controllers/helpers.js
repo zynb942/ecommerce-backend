@@ -85,11 +85,42 @@ const addPriceFilter = (filter, minPrice, maxPrice) => {
   }
 }
 
+//#region Cart helper
+/**
+ * Find the index of a product in the cart.
+ * @param { Object } cart
+ * @param { string } productId
+ * @returns { number }
+ */
+const findCartItemIndex = (cart, productId) => {
+  return cart.items.findIndex(
+    (it) => it.product.toString() === productId
+  )
+}
+//#endregion
+
+//#region Stock helper
+const updateProductStock = (product, oldQuantity, newQuantity) => {
+  const difference = newQuantity - oldQuantity;
+  if (difference > 0) {
+    if (product.stock < difference) {
+      throw new ApiError(400, 'Not enough stock available.');
+    }
+    product.stock -= difference;
+  } else if (difference < 0) {
+    product.stock += Math.abs(difference);
+  }
+}
+//#endregion
+
+
 
 module.exports = {
   getSortQuery,
   getPagination,
   addRegexFilter,
   addTagsFilter,
-  addPriceFilter
+  addPriceFilter,
+  findCartItemIndex,
+  updateProductStock
 }
