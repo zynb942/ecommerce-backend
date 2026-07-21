@@ -3,19 +3,11 @@ const express = require("express");
 const { protect } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 
-const {
-  addToCartSchema,
-  cartProductIdSchema,
-} = require("../validation/cart.validation");
+const { addToCartSchema , applyCouponSchema ,cartProductIdSchema} = require("../validation/cart.validation");
 
 const router = express.Router();
 
-const {
-  getCart,
-  removeCoupon,
-  addItemToCart,
-  removeCartItem,
-} = require("../controllers/cart.controller");
+const { getCart, removeCoupon , addItemToCart , applyCoupon, removeCartItem} = require("../controllers/cart.controller");
 
 
 // Get current user's cart
@@ -32,5 +24,7 @@ router.delete(
 
 // Remove applied coupon
 router.delete("/coupon", protect, removeCoupon);
+
+router.post( "/coupon", protect, validate(applyCouponSchema), applyCoupon);
 
 module.exports = router;
