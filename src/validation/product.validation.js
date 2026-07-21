@@ -3,152 +3,101 @@ const Joi = require("joi");
 // here we put our models schema
 
 const createProductSchema = Joi.object({
-  name: Joi.string()
-    .trim()
-    .max(200)
-    .required()
-    .messages({
-      "string.empty": "Product name is required",
-      "string.max": "Product name cannot exceed 200 characters",
-      "any.required": "Product name is required",
-    }),
+  name: Joi.string().trim().max(200).required().messages({
+    "string.empty": "Product name is required",
+    "string.max": "Product name cannot exceed 200 characters",
+    "any.required": "Product name is required",
+  }),
 
-  shortDescription: Joi.string()
-    .trim()
-    .max(500)
-    .required()
-    .messages({
-      "string.empty": "Short description is required",
-      "string.max": "Short description cannot exceed 500 characters", 
-      "any.required": "Short description is required",
-    }),
+  shortDescription: Joi.string().trim().max(500).required().messages({
+    "string.empty": "Short description is required",
+    "string.max": "Short description cannot exceed 500 characters",
+    "any.required": "Short description is required",
+  }),
 
-  description: Joi.string()
-    .trim()
-    .required()
-    .messages({
-      "string.empty": "Description is required",
-      "any.required": "Description is required",
-    }),
+  description: Joi.string().trim().required().messages({
+    "string.empty": "Description is required",
+    "any.required": "Description is required",
+  }),
 
-  price: Joi.number()
-    .positive()
-    .required()
-    .messages({
-      "number.base": "Price must be a number",
-      "number.positive": "Price must be greater than 0",
-      "any.required": "Price is required",
-    }),
+  price: Joi.number().positive().required().messages({
+    "number.base": "Price must be a number",
+    "number.positive": "Price must be greater than 0",
+    "any.required": "Price is required",
+  }),
 
-  discountPrice: Joi.number()
-    .min(0)
-    .optional()
-    .messages({
-      "number.base": "Discount price must be a number",
-      "number.min": "Discount price cannot be negative",
-    }),
+  discountPrice: Joi.number().min(0).optional().messages({
+    "number.base": "Discount price must be a number",
+    "number.min": "Discount price cannot be negative",
+  }),
 
-  stock: Joi.number()
-    .integer()
-    .min(0)
-    .required()
-    .messages({
-      "number.base": "Stock must be a number",
-      "number.integer": "Stock must be an integer",
-      "number.min": "Stock cannot be negative",
-      "any.required": "Stock is required",
-    }),
+  stock: Joi.number().integer().min(0).required().messages({
+    "number.base": "Stock must be a number",
+    "number.integer": "Stock must be an integer",
+    "number.min": "Stock cannot be negative",
+    "any.required": "Stock is required",
+  }),
 
-  sku: Joi.string()
-    .trim()
+  sku: Joi.string().trim().optional(),
+
+  category: Joi.string().trim().required().messages({
+    "string.empty": "Category is required",
+    "any.required": "Category is required",
+  }),
+
+  subcategory: Joi.string().trim().optional(),
+
+  brand: Joi.string().trim().optional(),
+
+  tags: Joi.alternatives()
+    .try(Joi.array().items(Joi.string().trim()), Joi.string())
     .optional(),
-
-  category: Joi.string()
-    .trim()
-    .required()
-    .messages({
-      "string.empty": "Category is required",
-      "any.required": "Category is required",
-    }),
-
-  subcategory: Joi.string()
-    .trim()
-    .optional(),
-
-  brand: Joi.string()
-    .trim()
-    .optional(),
-
-  tags: Joi.alternatives().try(
-    Joi.array().items(Joi.string().trim()),
-    Joi.string()
-  ).optional(),
 
   featured: Joi.boolean().optional(),
 
   isActive: Joi.boolean().optional(),
 })
-.custom((value, helpers) => {
-  if (
-    value.discountPrice !== undefined &&
-    value.discountPrice > value.price
-  ) {
-    return helpers.message(
-      "Discount price cannot exceed product price"
-    );
-  }
+  .custom((value, helpers) => {
+    if (
+      value.discountPrice !== undefined &&
+      value.discountPrice > value.price
+    ) {
+      return helpers.message("Discount price cannot exceed product price");
+    }
 
-  return value;
-})
-.options({
-  abortEarly: false,
-  allowUnknown: false,
-});
+    return value;
+  })
+  .options({
+    abortEarly: false,
+    allowUnknown: false,
+  });
 
 const updateProductSchema = Joi.object({
-  name: Joi.string()
-    .trim()
-    .max(200)
-    .optional()
-    .messages({
-      "string.max": "Product name cannot exceed 200 characters",
-    }),
+  name: Joi.string().trim().max(200).optional().messages({
+    "string.max": "Product name cannot exceed 200 characters",
+  }),
 
-  shortDescription: Joi.string()
-    .trim()
-    .max(500)
-    .optional()
-    .messages({
-      "string.max": "Short description cannot exceed 500 characters",
-    }),
+  shortDescription: Joi.string().trim().max(500).optional().messages({
+    "string.max": "Short description cannot exceed 500 characters",
+  }),
 
   description: Joi.string().trim().optional(),
 
-   price: Joi.number()
-    .positive()
-    .optional()
-    .messages({
-      "number.base": "Price must be a number",
-      "number.positive": "Price must be greater than 0",
-    }),
+  price: Joi.number().positive().optional().messages({
+    "number.base": "Price must be a number",
+    "number.positive": "Price must be greater than 0",
+  }),
 
-  discountPrice: Joi.number()
-    .min(0)
-    .optional()
-    .messages({
-      "number.base": "Discount price must be a number",
-      "number.min": "Discount price cannot be negative",
-    }),
+  discountPrice: Joi.number().min(0).optional().messages({
+    "number.base": "Discount price must be a number",
+    "number.min": "Discount price cannot be negative",
+  }),
 
- stock: Joi.number()
-    .integer()
-    .min(0)
-    .optional()
-    .messages({
-      "number.base": "Stock must be a number",
-      "number.integer": "Stock must be an integer",
-      "number.min": "Stock cannot be negative",
-    }),
+  stock: Joi.number().integer().min(0).optional().messages({
+    "number.base": "Stock must be a number",
+    "number.integer": "Stock must be an integer",
+    "number.min": "Stock cannot be negative",
+  }),
 
   sku: Joi.string().trim().optional(),
 
@@ -159,94 +108,78 @@ const updateProductSchema = Joi.object({
   brand: Joi.string().trim().optional(),
 
   tags: Joi.alternatives()
-    .try(
-      Joi.array().items(Joi.string().trim()),
-      Joi.string()
-    )
+    .try(Joi.array().items(Joi.string().trim()), Joi.string())
     .optional()
     .messages({
-      "alternatives.match":
-        "Tags must be an array or a JSON string",
+      "alternatives.match": "Tags must be an array or a JSON string",
     }),
 
-  featured: Joi.boolean()
-    .optional()
-    .messages({
-      "boolean.base": "Featured must be true or false",
-    }),
+  featured: Joi.boolean().optional().messages({
+    "boolean.base": "Featured must be true or false",
+  }),
 
-
-   isActive: Joi.boolean()
-    .optional()
-    .messages({
-      "boolean.base": "isActive must be true or false",
-    }),
+  isActive: Joi.boolean().optional().messages({
+    "boolean.base": "isActive must be true or false",
+  }),
 
   deletedImages: Joi.alternatives()
-  .try(
-    Joi.array().items(Joi.string()),
-    Joi.string().trim()
-  )
-  .optional()
-  .messages({
-    "alternatives.match":
-      "deletedImages must be an array or a JSON string",
-  }),
-  
-})
-.custom((value, helpers) => {
+    .try(Joi.array().items(Joi.string()), Joi.string().trim())
+    .optional()
+    .messages({
+      "alternatives.match": "deletedImages must be an array or a JSON string",
+    }),
+}).custom((value, helpers) => {
   if (
     value.discountPrice !== undefined &&
     value.price !== undefined &&
     value.discountPrice > value.price
   ) {
-    return helpers.message(
-      "Discount price cannot exceed product price"
-    );
+    return helpers.message("Discount price cannot exceed product price");
   }
 
   return value;
-  });
+});
 
 const addReviewSchema = Joi.object({
-  rating: Joi.number()
-    .integer()
-    .min(1)
-    .max(5)
-    .required()
-    .messages({
-      "number.base": "Rating must be a number",
-      "number.integer": "Rating must be an integer",
-      "number.min": "Rating must be at least 1",
-      "number.max": "Rating cannot be more than 5",
-      "any.required": "Rating is required",
-    }),
+  rating: Joi.number().integer().min(1).max(5).required().messages({
+    "number.base": "Rating must be a number",
+    "number.integer": "Rating must be an integer",
+    "number.min": "Rating must be at least 1",
+    "number.max": "Rating cannot be more than 5",
+    "any.required": "Rating is required",
+  }),
 
-  comment: Joi.string()
-    .trim()
-    .required()
-    .messages({
-      "string.empty": "Comment is required",
-      "any.required": "Comment is required",
-    }),
+  comment: Joi.string().trim().required().messages({
+    "string.empty": "Comment is required",
+    "any.required": "Comment is required",
+  }),
 });
 
 const productIdSchema = Joi.object({
-  id: Joi.string()
-    .hex()
-    .length(24)
-    .required()
-    .messages({
-      "string.base": "Product ID must be a string",
-      "string.empty": "Product ID is required",
-      "string.hex": "Invalid product ID format (must be a valid MongoDB ObjectId)",
-      "string.length": "Product ID must be exactly 24 characters",
-      "any.required": "Product ID is required",
-    }),
+  id: Joi.string().hex().length(24).required().messages({
+    "string.base": "Product ID must be a string",
+    "string.empty": "Product ID is required",
+    "string.hex":
+      "Invalid product ID format (must be a valid MongoDB ObjectId)",
+    "string.length": "Product ID must be exactly 24 characters",
+    "any.required": "Product ID is required",
+  }),
 });
+
+const reviewIdSchema = Joi.object({
+  reviewId: Joi.string().hex().length(24).required().messages({
+    "string.base": "Review ID must be a string",
+    "string.empty": "Review ID is required",
+    "string.hex": "Invalid review ID format (must be a valid MongoDB ObjectId)",
+    "string.length": "Review ID must be exactly 24 characters",
+    "any.required": "Review ID is required",
+  }),
+});
+
 module.exports = {
   createProductSchema,
   updateProductSchema,
   productIdSchema,
   addReviewSchema,
+  reviewIdSchema,
 };
