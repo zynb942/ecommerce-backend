@@ -20,7 +20,7 @@ const validate = (schema, property = "body") => {
       );
     }
 
-    req[property] = value;
+    request[property] = value;
 
     next()
   };
