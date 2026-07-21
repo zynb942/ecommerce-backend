@@ -273,7 +273,7 @@ const clearCart = asyncHandler(async (req, res) => {
  */
 const updateCartItem = asyncHandler(async (request, response, next)=>{
   const { productId, quantity: newQuantity } = request.body
-  const userId = request.user.id
+  const userId = request.user._id
 
   // Start MongoDB Session and Transaction (to ensure atomic updates between product and cart)
   const session = await mongoose.startSession()
