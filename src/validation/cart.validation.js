@@ -2,6 +2,16 @@ const Joi = require("joi");
 const mongoose = require("mongoose");
 
 // here we put our models schema
+
+const cartProductIdSchema = Joi.object({
+  productId: Joi.string().hex().length(24).required() .messages({
+            "string.base": "Product ID must be a string",
+            "string.empty": "Product ID is required",
+            "string.hex": "Product ID must be a valid MongoDB ObjectId",
+            "string.length": "Product ID must be 24 characters long",
+            "any.required": "Product ID is required",
+        })
+});
 const applyCouponSchema = Joi.object({
   code: Joi.string()
     .trim()
@@ -43,6 +53,7 @@ const addToCartSchema = Joi.object({
 });
 
 module.exports = {
+  cartProductIdSchema,
   addToCartSchema,
   applyCouponSchema 
 };
