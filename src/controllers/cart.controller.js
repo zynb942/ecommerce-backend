@@ -316,12 +316,19 @@ const updateCartItem = asyncHandler(async (request, response, next)=>{
     await session.commitTransaction()
     session.endSession()
 
-    return sendResponse(response, 200, 'Cart item quantity updated successfully..')
+    return sendResponse(response, 200, 'Cart item quantity updated successfully..', {
+      itemCount: cart.itemCount,
+      subtotal: cart.subtotal,
+      discountAmount: cart.discountAmount,
+      total: cart.total,
+      coupon: cart.coupon?.code || null,
+      items: cart.items
+    })
   }catch (error) {
     // Abort transaction on any failure
     await session.abortTransaction()
     session.endSession()
-    new ApiError(500, error.message || "Transaction failed")
+    throw new ApiError(500, error.message || "Transaction failed")
   }
 })
 //#endregion
