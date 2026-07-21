@@ -76,7 +76,6 @@ router.delete(
 router.delete(
   "/:id/reviews/:reviewId",
   protect,
-  allowTo("admin" || "owner"),
   validate(productIdSchema, "params"),
   validate(reviewIdSchema, "params"),
   deleteReview,
