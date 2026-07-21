@@ -106,21 +106,145 @@ const removeCoupon = asyncHandler(async (req, res) => {
     total: cart.total,
   });
 });
+const removeCartItem = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
 
+  const cart = await Cart.findOne({ user: req.user._id });
+
+  if (!cart) {
+    throw new ApiError(404, "Cart not found");
+  }
+
+  const item = cart.items.find(
+    (item) => item.product.toString() === productId
+  );
+
+  if (!item) {
+    throw new ApiError(404, "Item not found in cart");
+  }
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  product.stock += item.quantity;
+  await product.save();
+
+  cart.items = cart.items.filter(
+    (item) => item.product.toString() !== productId
+  );
+
+  await cart.save();
+
+  return sendResponse(res, 200, "Item removed from cart successfully",  {
+        itemCount: cart.itemCount,
+        subtotal: cart.subtotal,
+        discountAmount: cart.discountAmount,
+        total: cart.total,
+        coupon: cart.coupon?.code || null,
+        items: cart.items,
+    });
+  });
 /**
- * @desc Clear user's cart and restore product stocks
- * @route DELETE /api/carts/clear
+ * @desc Apply coupon to cart
+ * @route POST /api/v1/carts/coupon
  * @access Private
  */
-const clearCart = asyncHandler(async (req, res) => {
+const applyCoupon = asyncHandler(async (req, res) => {
   const userId = req.user._id;
+  const { code } = req.body;
 
+  // Find user's cart
   const cart = await Cart.findOne({ user: userId });
 
   if (!cart) {
     throw new ApiError(404, "Cart not found");
   }
 
+  // Ensure cart is not empty
+  if (!cart.items || cart.items.length === 0) {
+    throw new ApiError(400, "Cannot apply coupon to empty cart");
+  }
+
+  // Normalize coupon code
+  const normalizedCode = code.toUpperCase();
+
+  // Supported coupons
+  const coupons = {
+    SAVE10: {
+      discountType: "percentage",
+      discountValue: 10,
+    },
+    SAVE20: {
+      discountType: "percentage",
+      discountValue: 20,
+    },
+    SAVE50: {
+      discountType: "percentage",
+      discountValue: 50,
+    },
+    SAVE80: {
+      discountType: "percentage",
+      discountValue: 80,
+    },
+    OFF50: {
+      discountType: "fixed",
+      discountValue: 50,
+    },
+  };
+
+  // Validate coupon
+  const couponData = coupons[normalizedCode];
+
+  if (!couponData) {
+    throw new ApiError(400, "Invalid or expired coupon code");
+  }
+
+  // Apply coupon
+  cart.coupon = {
+    code: normalizedCode,
+    discountType: couponData.discountType,
+    discountValue: couponData.discountValue,
+  };
+
+  await cart.save();
+
+  return sendResponse(
+    res,
+    200,
+    `Coupon applied - you save ${
+    cart.coupon.discountType === "percentage"
+      ? `${cart.coupon.discountValue}%`
+      : cart.coupon.discountValue
+  }`,
+    {
+  itemCount: cart.itemCount,
+  subtotal: cart.subtotal,
+  discountAmount: cart.discountAmount,
+  total: cart.total,
+  coupon: cart.coupon.code, 
+}
+  );
+});
+
+
+ /**
+ * @desc Clear user's cart and restore product stocks
+ * @route DELETE /api/carts/clear
+ * @access Private
+ */
+const clearCart = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+   const cart = await Cart.findOne({  user: userId });
+
+    if (!cart) {
+        return next(
+            new ApiError(404, "Cart not found")
+        );
+    }
+  
   for (const item of cart.items) {
     await Product.findByIdAndUpdate(item.product, {
       $inc: { stock: item.quantity },
@@ -132,18 +256,15 @@ const clearCart = asyncHandler(async (req, res) => {
 
   await cart.save();
 
-  return sendResponse(res, 200, "Cart cleared successfully", {
-    itemCount: cart.itemCount,
-    subtotal: cart.subtotal,
-    discountAmount: cart.discountAmount,
-    total: cart.total,
-    items: cart.items,
-  });
+  return sendResponse(res, 200, "Cart cleared successfully");
 });
+
 
 module.exports = {
   getCart,
+  applyCoupon,
   removeCoupon,
   addItemToCart,
   clearCart,
+  removeCartItem,
 };

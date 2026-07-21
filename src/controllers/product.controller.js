@@ -4,8 +4,13 @@ const cloudinary = require("../config/cloudinary");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-const { getSortQuery, getPagination, addRegexFilter, addTagsFilter, addPriceFilter } = require('./helpers.js')
-
+const {
+  getSortQuery,
+  getPagination,
+  addRegexFilter,
+  addTagsFilter,
+  addPriceFilter,
+} = require("./helpers.js");
 
 const getAllProducts = asyncHandler(async (req, res) => {
   // pagination parameters with default values
@@ -47,7 +52,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
   }
 
   // sorting criteria based on query parameter
-  let sortCriteria = { createdAt: -1 }; 
+  let sortCriteria = { createdAt: -1 };
 
   if (req.query.sort) {
     switch (req.query.sort) {
@@ -181,25 +186,28 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const getProductById = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const product = await Product.findById(id).populate("createdBy", "username email avatar");
-  
-    if (!product) {
-    throw new ApiError(404, "Product not found");
-  }
-  
-   return sendResponse(res, 200,"Product retrieved successfully", { product });
-});
-
-const updateProduct = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  
-   const product = await Product.findById(id);
+  const product = await Product.findById(id).populate(
+    "createdBy",
+    "username email avatar",
+  );
 
   if (!product) {
     throw new ApiError(404, "Product not found");
   }
 
-   let {
+  return sendResponse(res, 200, "Product retrieved successfully", { product });
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  let {
     name,
     shortDescription,
     description,
@@ -242,58 +250,49 @@ const updateProduct = asyncHandler(async (req, res) => {
   product.tags = tags ?? product.tags;
   product.featured = featured ?? product.featured;
   product.isActive = isActive ?? product.isActive;
-  
-   // upload new images  
+
+  // upload new images
   if (req.files && req.files.length > 0) {
     const uploadedImages = await Promise.all(
-      req.files.map((file) => uploadToCloudinary(file, "products"))
+      req.files.map((file) => uploadToCloudinary(file, "products")),
     );
 
     product.images.push(...uploadedImages);
   }
- 
+
   // delete selected images
   let imagesToDelete = deletedImages;
 
   if (typeof imagesToDelete === "string") {
-  try {
-    imagesToDelete = JSON.parse(imagesToDelete);
-  } catch {
-    throw new ApiError(
-      400,
-      "deletedImages must be a valid JSON array"
-    );
+    try {
+      imagesToDelete = JSON.parse(imagesToDelete);
+    } catch {
+      throw new ApiError(400, "deletedImages must be a valid JSON array");
+    }
   }
-}
-if (Array.isArray(imagesToDelete)) {
-  for (const publicId of imagesToDelete) {
-    const imageExists = product.images.some(
-      (img) => img.public_id === publicId
-    );
+  if (Array.isArray(imagesToDelete)) {
+    for (const publicId of imagesToDelete) {
+      const imageExists = product.images.some(
+        (img) => img.public_id === publicId,
+      );
 
-    if (!imageExists) continue;
+      if (!imageExists) continue;
 
-    await cloudinary.uploader.destroy(publicId);
+      await cloudinary.uploader.destroy(publicId);
 
-    product.images = product.images.filter(
-      (img) => img.public_id !== publicId
-    );
+      product.images = product.images.filter(
+        (img) => img.public_id !== publicId,
+      );
+    }
   }
-}
-  
-   if ( product.discountPrice > product.price) {
-  throw new ApiError(
-    400,
-    "Discount price cannot exceed product price"
-  );
-}
+
+  if (product.discountPrice > product.price) {
+    throw new ApiError(400, "Discount price cannot exceed product price");
+  }
 
   if (product.images.length === 0) {
-  throw new ApiError(
-    400,
-    "Product must have at least one image"
-  );
-}
+    throw new ApiError(400, "Product must have at least one image");
+  }
 
   await product.save();
 
@@ -301,52 +300,48 @@ if (Array.isArray(imagesToDelete)) {
     product,
   });
 });
-  
-  
+
 /**
  * @desc Add a review to a product
  * @route POST /api/products/:id/reviews
  * @access Private
-*/
+ */
 const addReview = asyncHandler(async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const product = await Product.findById(id);
+  const product = await Product.findById(id);
 
-    if (!product) {
-        throw new ApiError(404, "Product not found");
-    }
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
 
-    const alreadyReviewed = product.reviews.find(
-        (review) => review.user.toString() === req.user._id.toString()
-    );
+  const alreadyReviewed = product.reviews.find(
+    (review) => review.user.toString() === req.user._id.toString(),
+  );
 
-    if (alreadyReviewed) {
-        throw new ApiError(400, "Already reviewed");
-    }
+  if (alreadyReviewed) {
+    throw new ApiError(400, "Already reviewed");
+  }
 
-    const review = {
-        user: req.user._id,
-        username: req.user.username,
-        rating: req.body.rating,
-        comment: req.body.comment,
-    };
+  const review = {
+    user: req.user._id,
+    username: req.user.username,
+    rating: req.body.rating,
+    comment: req.body.comment,
+  };
 
-    product.reviews.push(review);
+  product.reviews.push(review);
 
-    product.calcAverageRating();
+  product.calcAverageRating();
 
-    await product.save();
+  await product.save();
 
   return sendResponse(res, 201, "Review added successfully", {
-        review,
-        averageRating: product.averageRating,
-        numReviews: product.numReviews,
-    });
-
+    review,
+    averageRating: product.averageRating,
+    numReviews: product.numReviews,
+  });
 });
-  
-  
 
 //#region Search Products Controller
 /**
@@ -358,60 +353,63 @@ const addReview = asyncHandler(async (req, res) => {
  * @param { NextFunction } Express next middleware function for error handling
  * @returns { Promise<object> } Express response JSON object with products and pagination data
  */
-const searchProducts = asyncHandler(async (request, response)=>{
-  const { search, category, subcategory, brand, tags, minPrice,
-    maxPrice, sort, page = 1, limit = 10 } = request.query
-  
+const searchProducts = asyncHandler(async (request, response) => {
+  const {
+    search,
+    category,
+    subcategory,
+    brand,
+    tags,
+    minPrice,
+    maxPrice,
+    sort,
+    page = 1,
+    limit = 10,
+  } = request.query;
+
   // Only active products
-  const filter = { isActive: true }
+  const filter = { isActive: true };
 
   // Text Search Filter ($or with case-insensitive regex)
-  if(search) {
+  if (search) {
     filter.$or = [
-      { name: { $regex: search, $options: 'i' }},
-      { description: { $regex: search, $options: 'i' }},
-      { brand: { $regex: search, $options: 'i' }}
-    ]
+      { name: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+      { brand: { $regex: search, $options: "i" } },
+    ];
   }
 
   // Regex filters
-  addRegexFilter(filter, 'category', category)
-  addRegexFilter(filter, 'subcategory', subcategory)
-  addRegexFilter(filter, 'brand', brand)
-  
+  addRegexFilter(filter, "category", category);
+  addRegexFilter(filter, "subcategory", subcategory);
+  addRegexFilter(filter, "brand", brand);
 
   // Tags Filter & convert string Text to Array: 'wireless,audio' => ['wireless', 'audio']
-  addTagsFilter(filter, tags)
-  addPriceFilter(filter, minPrice, maxPrice)
+  addTagsFilter(filter, tags);
+  addPriceFilter(filter, minPrice, maxPrice);
 
   // Resolve Sorting Query using the local helper
-  const sortQuery = getSortQuery(sort)
+  const sortQuery = getSortQuery(sort);
 
   // Pagination Setup
-  const { currentPage, limitPerPage, skip } = getPagination(page, limit)
+  const { currentPage, limitPerPage, skip } = getPagination(page, limit);
 
   // Fetch products (Optimized with lean())
   const [totalProducts, products] = await Promise.all([
-    Product.countDocuments(filter), 
-    Product.find(filter)
-      .sort(sortQuery)
-      .skip(skip)
-      .limit(limitPerPage)
-      .lean()
-  ])
+    Product.countDocuments(filter),
+    Product.find(filter).sort(sortQuery).skip(skip).limit(limitPerPage).lean(),
+  ]);
 
-  const totalPages = Math.ceil(totalProducts / limitPerPage)
+  const totalPages = Math.ceil(totalProducts / limitPerPage);
 
-  return sendResponse(response, 200, 'Products fetched successfully..', {
+  return sendResponse(response, 200, "Products fetched successfully..", {
     totalProducts,
     currentPage,
-    totalPages, 
-    products
-  })
-})
+    totalPages,
+    products,
+  });
+});
 //#endregion
-
-
 
 /**
  * @desc Delete product by ID (Admin only)
@@ -434,8 +432,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
     try {
       await Promise.all(
         product.images.map((image) =>
-          cloudinary.uploader.destroy(image.public_id)
-        )
+          cloudinary.uploader.destroy(image.public_id),
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -449,6 +447,39 @@ const deleteProduct = asyncHandler(async (req, res) => {
   // Return success response
   return sendResponse(res, 200, "Product deleted successfully");
 });
+
+const deleteReview = asyncHandler(async (req, res) => {
+  const { productId, reviewId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(400, "productId are invalid");
+  }
+  const review = product.reviews.id(reviewId);
+  if (!review) {
+    throw new ApiError(400, " there is no review with such id");
+  }
+
+  const isOwner = review.user.equals(req.user._id);
+  const isAdmin = req.user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    throw new ApiError(403, "You are not authorized to delete this review");
+  }
+
+  product.reviews.id(reviewId).deleteOne();
+
+  product.calcAverageRating();
+
+  await product.save();
+
+  return sendResponse(res, 200, "Review deleted successfully", {
+    averageRating: product.averageRating,
+    numReviews: product.numReviews,
+  });
+});
+
 module.exports = {
   getAllProducts,
   getProductReviews,
@@ -457,5 +488,6 @@ module.exports = {
   deleteProduct,
   updateProduct,
   addReview,
-  searchProducts
+  searchProducts,
+  deleteReview,
 };
