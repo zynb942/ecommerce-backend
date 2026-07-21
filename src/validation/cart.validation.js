@@ -5,12 +5,12 @@ const mongoose = require("mongoose");
 
 const cartProductIdSchema = Joi.object({
   productId: Joi.string().hex().length(24).required() .messages({
-            "string.base": "Product ID must be a string",
-            "string.empty": "Product ID is required",
-            "string.hex": "Product ID must be a valid MongoDB ObjectId",
-            "string.length": "Product ID must be 24 characters long",
-            "any.required": "Product ID is required",
-        })
+    "string.base": "Product ID must be a string",
+    "string.empty": "Product ID is required",
+    "string.hex": "Product ID must be a valid MongoDB ObjectId",
+    "string.length": "Product ID must be 24 characters long",
+    "any.required": "Product ID is required",
+  })
 });
 const applyCouponSchema = Joi.object({
   code: Joi.string()
@@ -22,7 +22,7 @@ const applyCouponSchema = Joi.object({
       "string.empty": "Coupon code is required",
       "string.uppercase": "Coupon code must be uppercase",
       "any.required": "Coupon code is required",
-       })
+      })
     })
 
 
@@ -47,13 +47,34 @@ const addToCartSchema = Joi.object({
       "number.min": "Quantity must be at least 1",
       "any.required": "Quantity is required",
     }),
-}).options({
-  abortEarly: false,
-  allowUnknown: false,
-});
+})
+
+
+
+/**
+ * @description Updat Cart-item's schema
+ */
+const updateCartItemSchema = Joi.object({
+  productId: Joi.string().hex().length(24).required().messages({
+      "string.base": "Product ID must be a string",
+      "string.empty": "Product ID is required",
+      "string.hex": "Product ID must be a valid MongoDB ObjectId",
+      "string.length": "Product ID must be 24 characters long",
+      "any.required": "Product ID is required",
+    }),
+  quantity: Joi.number().integer().positive().required().messages({
+      "number.base": "Quantity must be a number",
+      "number.integer": "Quantity must be a valid integer",
+      "number.positive": "Quantity must be greater than zero",
+      "any.required": "Quantity is required",
+    }),
+})
+
+
 
 module.exports = {
   cartProductIdSchema,
   addToCartSchema,
-  applyCouponSchema 
+  applyCouponSchema, 
+  updateCartItemSchema,
 };

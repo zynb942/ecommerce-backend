@@ -8,7 +8,9 @@ const ApiError = require("../utils/apiError");
 const validate = (schema, property = "body") => {
   return (request, response, next) => {
     const { error, value } = schema.validate(request[property], {
-      abortEarly: false
+      abortEarly: false,
+      allowUnknown: false,
+      stripUnknown: true
     });
 
     if (error) {

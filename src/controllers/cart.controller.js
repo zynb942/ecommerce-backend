@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
 
@@ -50,9 +51,9 @@ const addItemToCart = asyncHandler(async (req, res) => {
 });
  
 /**
- * desc : Get current logged-in user's cart
- * route: GET /api/v1/carts
- * access: Private
+ * @desc Get current logged-in user's cart
+ * @access Private
+ * @route GET /api/v1/carts
  */
 const getCart = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Read the authenticated user's ID from req.user
@@ -84,9 +85,9 @@ const getCart = asyncHandler(async (req, res) => {
 });
 
 /**
- * desc : Remove applied coupon from user's cart
- * route: DELETE /api/v1/carts/coupon
- * access: Private
+ * @desc Remove applied coupon from user's cart
+ * @access Private
+ * @route DELETE /api/v1/carts/coupon
  */
 const removeCoupon = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -260,11 +261,79 @@ const clearCart = asyncHandler(async (req, res) => {
 });
 
 
+//#region Update Cart Item Quantity
+/**
+ * @description Update quantity of an item in the user's cart
+ * @route PATCH /carts/items
+ * @access PRIVATE
+ * @param { Object } Express request object
+ * @param { Object } Express response object
+ * @param { NextFunction } Express next middleware function for error handling
+ * @returns { Object } Success message after updating cart item
+ */
+const updateCartItem = asyncHandler(async (request, response, next)=>{
+  const { productId, quantity: newQuantity } = request.body
+  const userId = request.user.id
+
+  // Start MongoDB Session and Transaction (to ensure atomic updates between product and cart)
+  const session = await mongoose.startSession()
+  session.startTransaction()
+  try {
+    // Find user cart with active session
+    const cart = await Cart.findOne({ user: userId }).session(session)
+    if (!cart) {
+      await session.abortTransaction()
+      session.endSession()
+      return sendResponse(response, 404, "Cart not found.")
+    }
+    // Find cart item index
+    const itemIndex = findCartItemIndex(cart, productId);
+    if (itemIndex === -1) {
+      await session.abortTransaction()
+      session.endSession()
+      return sendResponse(response, 404, "Item not found in cart.")
+    }
+
+    const currentItem = cart.items[itemIndex]
+    const oldQuantity = currentItem.quantity
+
+    // Find product with active session
+    const product = await Product.findById(productId).session(session)
+    if (!product) {
+      await session.abortTransaction()
+      session.endSession()
+      return sendResponse(response, 404, "Product not found.")
+    }
+
+    // Update stock and cart item quantity
+    updateProductStock(product, oldQuantity, newQuantity)
+    currentItem.quantity = newQuantity
+
+    await product.save({ session })
+    await cart.save({ session })
+
+    // Commit transaction and end session
+    await session.commitTransaction()
+    session.endSession()
+
+    return sendResponse(response, 200, 'Cart item quantity updated successfully..')
+  }catch (error) {
+    // Abort transaction on any failure
+    await session.abortTransaction()
+    session.endSession()
+    new ApiError(500, error.message || "Transaction failed")
+  }
+})
+//#endregion
+
+
+
 module.exports = {
   getCart,
+  addItemToCart,
+  updateCartItem,
+  removeCartItem,
+  clearCart,
   applyCoupon,
   removeCoupon,
-  addItemToCart,
-  clearCart,
-  removeCartItem,
 };
