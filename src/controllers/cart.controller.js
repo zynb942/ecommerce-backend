@@ -106,9 +106,49 @@ const removeCoupon = asyncHandler(async (req, res) => {
     total: cart.total,
   });
 });
+const removeCartItem = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
 
+  const cart = await Cart.findOne({ user: req.user._id });
+
+  if (!cart) {
+    throw new ApiError(404, "Cart not found");
+  }
+
+  const item = cart.items.find(
+    (item) => item.product.toString() === productId
+  );
+
+  if (!item) {
+    throw new ApiError(404, "Item not found in cart");
+  }
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  product.stock += item.quantity;
+  await product.save();
+
+  cart.items = cart.items.filter(
+    (item) => item.product.toString() !== productId
+  );
+
+  await cart.save();
+
+  return sendResponse(res, 200, "Item removed from cart successfully", {
+    itemCount: cart.itemCount,
+    subtotal: cart.subtotal,
+    discountAmount: cart.discountAmount,
+    total: cart.total,
+    items: cart.items,
+  });
+});
 module.exports = {
   getCart,
   removeCoupon,
   addItemToCart,
+  removeCartItem,
 };
