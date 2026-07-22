@@ -9,11 +9,7 @@ const getAllWishlists = asyncHandler(async (req, res) => {
 
   const [totalWishlists, wishlists] = await Promise.all([
     Wishlist.countDocuments(),
-    Wishlist.find()
-      .populate("user")
-      .populate("products")
-      .skip(skip)
-      .limit(limit),
+    Wishlist.find().populate("products").skip(skip).limit(limit),
   ]);
   const totalPages = Math.ceil(totalWishlists / limit);
 
