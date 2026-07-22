@@ -4,6 +4,7 @@ const userRoutes = require('./routes/user.routes.js');
 const errorHandler = require('./middlewares/errorHandler.js')
 const cartRoutes = require("./routes/cart.routes");
 const productRoutes = require("./routes/product.routes");
+const wishlistRoutes = require("./routes/wishlist.routes");
 
 const app = express();
 
@@ -14,4 +15,5 @@ app.use('/api/users', userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/carts", cartRoutes);
 app.use(errorHandler);
+app.use("/api/wishlists", wishlistRoutes);
 module.exports = app;
