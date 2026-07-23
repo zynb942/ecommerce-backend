@@ -1,10 +1,11 @@
 const express = require("express");
+
 const router = express.Router();
 
 const { protect , allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 const { productIdSchema } = require("../validation/wishlist.validation");
-const { removeFromWishlist , getAllWishlists  } = require("../controllers/wishlist.controller");
+const { getMyWishlist, removeFromWishlist , getAllWishlists  } = require("../controllers/wishlist.controller");
 
 router.delete(
   "/remove/:productId",
@@ -14,5 +15,7 @@ router.delete(
 );
 
 router.get("/admin/all", protect, allowTo("admin"), getAllWishlists);
+
+router.get("/my", protect, getMyWishlist);
 
 module.exports = router;

@@ -4,7 +4,6 @@ const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
 const { getPagination } = require("./helpers");
 
-
 const getAllWishlists = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query.page, req.query.limit);
 
@@ -12,6 +11,7 @@ const getAllWishlists = asyncHandler(async (req, res) => {
     Wishlist.countDocuments(),
     Wishlist.find().populate("products").skip(skip).limit(limit),
   ]);
+
   const totalPages = Math.ceil(totalWishlists / limit);
 
   return sendResponse(res, 200, "Wishlists retrieved successfully", {
@@ -19,6 +19,26 @@ const getAllWishlists = asyncHandler(async (req, res) => {
     currentPage: page,
     totalPages,
     wishlists,
+  });
+});
+
+const getMyWishlist = asyncHandler(async (req, res, next) => {
+  const wishlist = await Wishlist.findOne({
+    user: req.user._id,
+  }).populate("products");
+
+  if (!wishlist) {
+    return sendResponse(res, 200, "Wishlist is empty", {
+      totalProducts: 0,
+      wishlist: null,
+    });
+  }
+
+  await wishlist.populate("products");
+  
+  return sendResponse(res, 200, "Wishlist retrieved successfully", {
+    totalProducts: wishlist.products.length,
+    wishlist,
   });
 });
 
@@ -62,4 +82,4 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
 
 
 
-module.exports = {  removeFromWishlist, getAllWishlists };
+module.exports = {  getMyWishlist, removeFromWishlist, getAllWishlists };
