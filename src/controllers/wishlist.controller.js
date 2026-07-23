@@ -81,5 +81,52 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
 });
 
 
+//#region GET WISHLIST STATISTICS 
+/**
+ * @description Get wishlist statistics (total wishlists, total products, top 10 products)
+ * @route GET /api/wishlists/admin/stats
+ * @access PRIVATE (admin only)
+ * @returns { Object } JSON response with statistics data
+ */
+const getWishlistStats = asyncHandler(async(request, response, next)=> {
+  // Run all Queries in the same time to get best performance
+  const [totals, topProducts] = await Promis.all([
+    
+    // calculate total wishlists & total products
+    Wishlist.aggregate([
+      {
+        $group: { 
+          _id: null, 
+          totalWishlists: { $sum: 1 }, 
+          totalWishlistProducts: { $sum: {$size: { $ifNull: ['$products',[]]}}} 
+        }
+      }
+    ]),
+    
+    // get top 10 most wishlisted products
+    Wishlist.aggregate([
+      { $unwind: '$products' },{ $group: {_id: '$products', count: { $sum: 1 }}},
+      { $sort: { count: -1 }},
+      { $limit: 10 },
+      { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'productData'}},
+      { $unwind: '$productData' },
+      { $project: { _id: 1, productId: '$_id', count: 1, name: 'productData.name', image: { $arrayElemAt: ['$productData.images.url', 0]}}}
+    ])
+  ])
 
-module.exports = {  getMyWishlist, removeFromWishlist, getAllWishlists };
+  // set default values if the db is empty
+  const stats = totals[0] || { totalWishlists: 0, totalWishlistProducts: 0 }
+
+  return sendResponse(response, 200, 'Wishlist statistics retrieved successfully..', {
+    success: true,
+    statistics: {
+      totalWishlists: stats.totalWishlists,
+      totalWishlistProducts: stats.totalWishlistProducts,
+      topProducts: topProducts
+    }
+  })
+})
+//#endregion
+
+
+module.exports = {  getMyWishlist, removeFromWishlist, getAllWishlists, getWishlistStats };
