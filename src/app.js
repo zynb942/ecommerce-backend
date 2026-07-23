@@ -14,6 +14,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/carts", cartRoutes);
-app.use("/api/wishlists");
+app.use("/api/wishlists", wishlistRoutes);
 app.use(errorHandler);
 module.exports = app;

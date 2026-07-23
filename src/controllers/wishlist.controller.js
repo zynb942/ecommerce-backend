@@ -4,6 +4,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
 const { getPagination } = require("./helpers");
+
 const getAllWishlists = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query.page, req.query.limit);
 
@@ -11,6 +12,7 @@ const getAllWishlists = asyncHandler(async (req, res) => {
     Wishlist.countDocuments(),
     Wishlist.find().populate("products").skip(skip).limit(limit),
   ]);
+
   const totalPages = Math.ceil(totalWishlists / limit);
 
   return sendResponse(res, 200, "Wishlists retrieved successfully", {
@@ -61,7 +63,65 @@ const addToWishlist = asyncHandler(async (req, res) => {
     wishlist,
   });
 });
-module.exports = {
-  getAllWishlists,
-  addToWishlist,
-};
+
+const getMyWishlist = asyncHandler(async (req, res, next) => {
+  const wishlist = await Wishlist.findOne({
+    user: req.user._id,
+  }).populate("products");
+
+  if (!wishlist) {
+    return sendResponse(res, 200, "Wishlist is empty", {
+      totalProducts: 0,
+      wishlist: null,
+    });
+  }
+
+  await wishlist.populate("products");
+  
+  return sendResponse(res, 200, "Wishlist retrieved successfully", {
+    totalProducts: wishlist.products.length,
+    wishlist,
+  });
+});
+
+
+/**
+ * @desc Remove a product from the logged-in user's wishlist
+ * @route DELETE /api/wishlists/remove/:productId
+ * @access Private
+ */
+const removeFromWishlist = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const userId = req.user._id;
+
+  const wishlist = await Wishlist.findOne({ user: userId });
+
+  if (!wishlist) {
+    throw new ApiError(404, "Wishlist not found");
+  }
+
+  
+  const productIndex = wishlist.products.findIndex(
+    (product) => product._id.toString() === productId
+  );
+
+  if (productIndex === -1) {
+    throw new ApiError(404, "Product not found in wishlist");
+  }
+
+  wishlist.products.splice(productIndex, 1);
+  await wishlist.save();
+  await wishlist.populate("products");
+  return sendResponse(
+    res,
+    200,
+    "Product removed from wishlist successfully",
+    {
+      wishlist,
+    }
+  );
+});
+
+
+
+module.exports = {  addToWishlist, getMyWishlist, removeFromWishlist, getAllWishlists };
