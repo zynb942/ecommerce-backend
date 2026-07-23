@@ -2,15 +2,17 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-  getAllWishlists,
-  getMyWishlist,
-} = require("../controllers/wishlist.controller");
+const { protect , allowTo } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validation.middleware");
+const { productIdSchema } = require("../validation/wishlist.validation");
+const { getMyWishlist, removeFromWishlist , getAllWishlists  } = require("../controllers/wishlist.controller");
 
-const {
+router.delete(
+  "/remove/:productId",
   protect,
-  allowTo,
-} = require("../middlewares/auth.middleware");
+  validate(productIdSchema, "params"),
+  removeFromWishlist
+);
 
 router.get("/admin/all", protect, allowTo("admin"), getAllWishlists);
 
