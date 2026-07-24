@@ -99,14 +99,21 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Wishlist not found");
   }
 
+  const clearWishlist = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const wishlist = await Wishlist.findOne({ user: userId });
+  if (!wishlist) {
+    throw new ApiError(404, "Wishlist not found");
+  }
 
   wishlist.products = [];
 
   await wishlist.save();
-  return sendResponse(res, 200, "Wishlist cleared successfully",);
+  return sendResponse(res, 200, "Wishlist cleared successfully", {
+  });
 });
 
-  
   const productIndex = wishlist.products.findIndex(
     (product) => product._id.toString() === productId
   );
@@ -143,6 +150,4 @@ const clearWishlist = asyncHandler(async (req, res, next) => {
 });
 
 
-
 module.exports = {  addToWishlist, getMyWishlist, removeFromWishlist, getAllWishlists, clearWishlist };
-

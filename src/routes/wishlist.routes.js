@@ -2,12 +2,7 @@ const express = require("express");
 const { protect , allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 const { productIdSchema } = require("../validation/wishlist.validation");
-const { addToWishlist, getMyWishlist, removeFromWishlist , getAllWishlists  } = require("../controllers/wishlist.controller");
-const { clearWishlist } = require("../controllers/wishlist.controller");
-
-
-const router = express.Router();
-
+const { addToWishlist, getMyWishlist, removeFromWishlist , getAllWishlists,clearWishlist  } = require("../controllers/wishlist.controller");
 
 router.delete(
   "/remove/:productId",
@@ -17,10 +12,9 @@ router.delete(
 );
 
 router.delete(
-  "/clear", 
-  protect, 
-  clearWishlist);
-
+   "/clear", 
+   protect, 
+   clearWishlist);
 
 router.post(
   "/add/:productId",
