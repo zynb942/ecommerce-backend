@@ -14,10 +14,7 @@ const clearWishlist = asyncHandler(async (req, res, next) => {
   wishlist.products = [];
 
   await wishlist.save();
-  return sendResponse(res, 200, "Wishlist cleared successfully", {
-    success: true,
-    message: "Wishlist cleared successfully",
-  });
+  return sendResponse(res, 200, "Wishlist cleared successfully",);
 });
 
 module.exports = {
