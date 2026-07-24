@@ -1,9 +1,9 @@
-<<<<<<< HEAD
 const mongoose = require("mongoose");
 const Order = require("../models/order.model");
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
 const ApiError = require("../utils/apiError");
+const { getPagination } = require("./helpers");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");
@@ -31,6 +31,7 @@ const createOrder = asyncHandler(async (req, res) => {
   try {
     // Prepare order items from cart items
     const orderItems = cart.items.map((item) => ({
+      product: item.product,
       name: item.name,
       image: item.image,
       price: item.price,
@@ -38,7 +39,7 @@ const createOrder = asyncHandler(async (req, res) => {
     }));
 
     // 3. Getting subtotal, discount from the cart
-    const subtotal = cart.subtotal;
+    const subtotal = Number(cart.subtotal.toFixed(2));
     const discount = cart.discountAmount || 0;
 
     // 4. Calculate shipping fee if subtotal is greater than 1000, shipping is free
@@ -58,6 +59,7 @@ const createOrder = asyncHandler(async (req, res) => {
           items: orderItems,
           shippingAddress,
           paymentMethod: paymentMethod || "cash",
+          paymentStatus: "pending",
           subtotal,
           shippingFee,
           tax,
@@ -65,7 +67,6 @@ const createOrder = asyncHandler(async (req, res) => {
           totalPrice,
           customerNote: customerNote || "",
           status: "pending",
-          paymentStatus: paymentMethod === "cash" ? "pending" : "pending",
         },
       ],
       { session },
@@ -89,7 +90,7 @@ const createOrder = asyncHandler(async (req, res) => {
           <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
           <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$${item.price.toFixed(2)}</td>
           <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
-        </tr>`
+        </tr>`,
       )
       .join("");
 
@@ -156,7 +157,10 @@ const createOrder = asyncHandler(async (req, res) => {
         });
       }
     } catch (emailError) {
-      console.error("Order confirmation email failed to send:", emailError.message);
+      console.error(
+        "Order confirmation email failed to send:",
+        emailError.message,
+      );
     }
 
     return sendResponse(res, 201, "Order placed successfully", {
@@ -168,16 +172,6 @@ const createOrder = asyncHandler(async (req, res) => {
     throw error;
   }
 });
-
-module.exports = {
-  createOrder,
-=======
-const Order = require("../models/order.model");
-
-const asyncHandler = require("../utils/asyncHandler");
-const sendResponse = require("../utils/sendResponse");
-
-const { getPagination } = require("./helpers");
 
 const getMyOrders = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
@@ -193,7 +187,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
 
     Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitPerPage),
   ]);
-  const totalPages = Math.ceil(totalOrders  / limitPerPage);
+  const totalPages = Math.ceil(totalOrders / limitPerPage);
   return sendResponse(res, 200, "Orders retrieved successfully", {
     totalOrders,
     currentPage,
@@ -204,5 +198,5 @@ const getMyOrders = asyncHandler(async (req, res) => {
 
 module.exports = {
   getMyOrders,
->>>>>>> origin/main
+  createOrder,
 };
