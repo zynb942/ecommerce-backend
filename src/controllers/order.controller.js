@@ -10,7 +10,7 @@ const sendEmail = require("../utils/sendEmail");
 
 /**
  * @desc    Place a new Order from current User's active Cart
- * @route   POST /api/v1/orders
+ * @route   POST /api/orders
  * @access  Private
  */
 
@@ -18,18 +18,15 @@ const createOrder = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { shippingAddress, paymentMethod, customerNote } = req.body;
 
-  // 1. get the current user's cart and ensure it has items
   const cart = await Cart.findOne({ user: userId });
   if (!cart || !cart.items || cart.items.length === 0) {
     throw new ApiError(400, "Cart is empty. Cannot place an order.");
   }
 
-  // 2. Start a Mongoose session for transaction management
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // Prepare order items from cart items
     const orderItems = cart.items.map((item) => ({
       product: item.product,
       name: item.name,
@@ -38,20 +35,17 @@ const createOrder = asyncHandler(async (req, res) => {
       quantity: item.quantity,
     }));
 
-    // 3. Getting subtotal, discount from the cart
     const subtotal = Number(cart.subtotal.toFixed(2));
     const discount = cart.discountAmount || 0;
 
-    // 4. Calculate shipping fee if subtotal is greater than 1000, shipping is free
+   
     const shippingFee = subtotal >= 1000 ? 0 : 50;
     const tax = Number((subtotal * 0.14).toFixed(2));
 
-    // 5. Calculate total price
     const totalPrice = Number(
       Math.max(0, subtotal + shippingFee + tax - discount).toFixed(2),
     );
 
-    //6. Create the order document in the database within the transaction
     const [order] = await Order.create(
       [
         {
@@ -72,16 +66,14 @@ const createOrder = asyncHandler(async (req, res) => {
       { session },
     );
 
-    // 7. clear the user's cart and reset coupon
+
     cart.items = [];
     cart.coupon = null;
     await cart.save({ session });
 
-    // 8. Commit the transaction and end the session
     await session.commitTransaction();
     session.endSession();
 
-    // 9. Send order confirmation email to the user
     const itemsTableRows = orderItems
       .map(
         (item) => `

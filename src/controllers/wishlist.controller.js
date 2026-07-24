@@ -2,8 +2,9 @@ const Product = require("../models/product.model");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
-const Wishlist = require("../models/wishlist.model"); 
+const Wishlist = require("../models/wishlist.model");
 const { getPagination } = require("./helpers");
+
 
 const getAllWishlists = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query.page, req.query.limit);
@@ -77,7 +78,7 @@ const getMyWishlist = asyncHandler(async (req, res, next) => {
   }
 
   await wishlist.populate("products");
-  
+
   return sendResponse(res, 200, "Wishlist retrieved successfully", {
     totalProducts: wishlist.products.length,
     wishlist,
@@ -95,25 +96,11 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const wishlist = await Wishlist.findOne({ user: userId });
+
   if (!wishlist) {
     throw new ApiError(404, "Wishlist not found");
   }
-
-  const clearWishlist = asyncHandler(async (req, res, next) => {
-  const userId = req.user._id;
-
-  const wishlist = await Wishlist.findOne({ user: userId });
-  if (!wishlist) {
-    throw new ApiError(404, "Wishlist not found");
-  }
-
-  wishlist.products = [];
-
-  await wishlist.save();
-  return sendResponse(res, 200, "Wishlist cleared successfully", {
-  });
-});
-
+  
   const productIndex = wishlist.products.findIndex(
     (product) => product._id.toString() === productId
   );
@@ -150,4 +137,4 @@ const clearWishlist = asyncHandler(async (req, res, next) => {
 });
 
 
-module.exports = {  addToWishlist, getMyWishlist, removeFromWishlist, getAllWishlists, clearWishlist };
+module.exports = { addToWishlist, getMyWishlist, removeFromWishlist, getAllWishlists, clearWishlist };

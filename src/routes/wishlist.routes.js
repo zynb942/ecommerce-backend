@@ -3,6 +3,8 @@ const { protect , allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 const { productIdSchema } = require("../validation/wishlist.validation");
 const { addToWishlist, getMyWishlist, removeFromWishlist , getAllWishlists,clearWishlist  } = require("../controllers/wishlist.controller");
+const router = express.Router();
+
 
 router.delete(
   "/remove/:productId",
