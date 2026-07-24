@@ -1,8 +1,10 @@
-const Wishlist = require("../models/wishlist.model");
+const Product = require("../models/product.model");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
+const Wishlist = require("../models/wishlist.model");
 const { getPagination } = require("./helpers");
+
 
 const getAllWishlists = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query.page, req.query.limit);
@@ -21,6 +23,47 @@ const getAllWishlists = asyncHandler(async (req, res) => {
     wishlists,
   });
 });
+const addToWishlist = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  let wishlist = await Wishlist.findOne({ user: req.user._id });
+
+  if (!wishlist) {
+    wishlist = await Wishlist.create({
+      user: req.user._id,
+      products: [productId],
+    });
+
+    await wishlist.populate("products");
+
+    return sendResponse(res, 201, "Product added to wishlist successfully", {
+      wishlist,
+    });
+  }
+
+  const exists = wishlist.products.some(
+    (id) => id._id.toString() === productId
+  );
+
+  if (exists) {
+    throw new ApiError(400, "Product already in wishlist");
+  }
+
+  wishlist.products.push(productId);
+
+  await wishlist.save();
+  await wishlist.populate("products");
+
+  return sendResponse(res, 200, "Product added to wishlist successfully", {
+    wishlist,
+  });
+});
 
 const getMyWishlist = asyncHandler(async (req, res, next) => {
   const wishlist = await Wishlist.findOne({
@@ -35,7 +78,7 @@ const getMyWishlist = asyncHandler(async (req, res, next) => {
   }
 
   await wishlist.populate("products");
-  
+
   return sendResponse(res, 200, "Wishlist retrieved successfully", {
     totalProducts: wishlist.products.length,
     wishlist,
@@ -57,7 +100,6 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
   if (!wishlist) {
     throw new ApiError(404, "Wishlist not found");
   }
-
   
   const productIndex = wishlist.products.findIndex(
     (product) => product._id.toString() === productId
@@ -80,6 +122,19 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
   );
 });
 
+const clearWishlist = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const wishlist = await Wishlist.findOne({ user: userId });
+  if (!wishlist) {
+    throw new ApiError(404, "Wishlist not found");
+  }
+
+  wishlist.products = [];
+
+  await wishlist.save();
+  return sendResponse(res, 200, "Wishlist cleared successfully",);
+});
 
 //#region GET WISHLIST STATISTICS 
 /**
@@ -89,10 +144,10 @@ const removeFromWishlist = asyncHandler(async (req, res) => {
  * @returns { Object } JSON response with statistics data
  */
 const getWishlistStats = asyncHandler(async(request, response, next)=> {
-  // Run all Queries in the same time to get best performance
-  const [totals, topProducts] = await Promis.all([
+ 
+  const [totals, topProducts] = await Promise.all([
     
-    // calculate total wishlists & total products
+   
     Wishlist.aggregate([
       {
         $group: { 
@@ -103,18 +158,18 @@ const getWishlistStats = asyncHandler(async(request, response, next)=> {
       }
     ]),
     
-    // get top 10 most wishlisted products
+  
     Wishlist.aggregate([
       { $unwind: '$products' },{ $group: {_id: '$products', count: { $sum: 1 }}},
       { $sort: { count: -1 }},
       { $limit: 10 },
       { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'productData'}},
       { $unwind: '$productData' },
-      { $project: { _id: 1, productId: '$_id', count: 1, name: 'productData.name', image: { $arrayElemAt: ['$productData.images.url', 0]}}}
+      { $project: { _id: 1, productId: '$_id', count: 1, name: '$productData.name', image: { $arrayElemAt: ['$productData.images.url', 0]}}}
     ])
   ])
 
-  // set default values if the db is empty
+ 
   const stats = totals[0] || { totalWishlists: 0, totalWishlistProducts: 0 }
 
   return sendResponse(response, 200, 'Wishlist statistics retrieved successfully..', {
@@ -129,4 +184,4 @@ const getWishlistStats = asyncHandler(async(request, response, next)=> {
 //#endregion
 
 
-module.exports = {  getMyWishlist, removeFromWishlist, getAllWishlists, getWishlistStats };
+module.exports = { addToWishlist, getMyWishlist, removeFromWishlist, getAllWishlists, clearWishlist , getWishlistStats };
