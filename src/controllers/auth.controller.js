@@ -21,25 +21,23 @@ const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 const resetPassword = asyncHandler(async(request, response, next) =>{
   const { email, otp, newPassword } = request.body
 
-  // check if otp exists and valid
   const otpDocument = await OTP.findOne({ email })
   if(!otpDocument){
     throw new ApiError(400, 'Invalid or expired OTP code')
   }
 
-  // check the expiration of OTP 
+
   if(otpDocument.expiresAt < new Date()) {
     await OTP.deleteOne({ _id: otpDocument._id })
     throw new ApiError(400, "OTP has expired");
   }
   
-  // compare the OTP with the hashed OTP in DB
+  
   const isMatch = await bcrypt.compare(otp, otpDocument.otp)
   if(!isMatch) {
     throw new ApiError(400, 'Invalid or expired OTP code')
   } 
 
-  // check if user exists and update the password
   const user = await User.findOne({ email })
   if(!user) {
     throw new ApiError(404, 'User not found')
@@ -47,7 +45,7 @@ const resetPassword = asyncHandler(async(request, response, next) =>{
   user.password = newPassword
   await user.save()
 
-  // Delete the used OTP from database for security
+ 
   await OTP.deleteOne({ _id: otpDocument._id })
 
   return sendResponse(response, 200, 'Password reset successfully')
@@ -57,7 +55,7 @@ const resetPassword = asyncHandler(async(request, response, next) =>{
 
 
 const sendRegisterOTP = asyncHandler(async (req, res, next) => {
-  // Validation بقت في الـ middleware
+
   const { username, email, password } = req.body;
 
   const existingUser = await User.findOne({ email });
@@ -142,14 +140,14 @@ const logout = asyncHandler(async (req, res, next) => {
 
 
 const changeRole = asyncHandler(async (req, res, next) => {
-// data validation is already done in the middleware using Joi schema
+
   const { userId, role } = req.body;
 
   const user = await User.findById(userId);
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-// Ensure that the new role is different from the current role
+
   if (user.role === role) {
     throw new ApiError(400, `User already has the role: ${role}`);
   }
@@ -157,10 +155,10 @@ const changeRole = asyncHandler(async (req, res, next) => {
   const oldRole = user.role;
   user.role = role;
 
-  // save changes to mongoDB
+  
   await user.save();
 
-  // Send email notification to the user about the role update.
+  
   try {
     await sendEmail({
       to: user.email,
@@ -173,7 +171,7 @@ const changeRole = asyncHandler(async (req, res, next) => {
     console.error("Email notification failed to send:", error.message);
   }
 
-  // Send response back to the client
+  
   return sendResponse(res, 200, `User role updated successfully to ${role}`, {user});
   
 });

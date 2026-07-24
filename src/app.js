@@ -8,6 +8,8 @@ const wishlistRoutes = require("./routes/wishlist.routes.js");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 
+
+
 const app = express();
 
 app.use(express.json());
@@ -21,3 +23,5 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use(errorHandler);
 module.exports = app;
+
+

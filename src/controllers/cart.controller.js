@@ -56,12 +56,10 @@ const addItemToCart = asyncHandler(async (req, res) => {
  * @route GET /api/v1/carts
  */
 const getCart = asyncHandler(async (req, res) => {
-  const userId = req.user._id; // Read the authenticated user's ID from req.user
+  const userId = req.user._id; 
 
-  // Find the cart belonging to the user
   let cart = await Cart.findOne({ user: userId });
 
-  // If no cart exists, return an empty cart template
   if (!cart) {
     return sendResponse(res, 200, "cart retrieved successfully", {
       items: [],
@@ -73,7 +71,7 @@ const getCart = asyncHandler(async (req, res) => {
     });
   }
 
-  // Return existing cart
+
   return sendResponse(res, 200, "cart retrieved successfully", {
     itemCount: cart.itemCount,
     subtotal: cart.subtotal,
@@ -157,22 +155,21 @@ const applyCoupon = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { code } = req.body;
 
-  // Find user's cart
   const cart = await Cart.findOne({ user: userId });
 
   if (!cart) {
     throw new ApiError(404, "Cart not found");
   }
 
-  // Ensure cart is not empty
+
   if (!cart.items || cart.items.length === 0) {
     throw new ApiError(400, "Cannot apply coupon to empty cart");
   }
 
-  // Normalize coupon code
+
   const normalizedCode = code.toUpperCase();
 
-  // Supported coupons
+
   const coupons = {
     SAVE10: {
       discountType: "percentage",
@@ -196,14 +193,14 @@ const applyCoupon = asyncHandler(async (req, res) => {
     },
   };
 
-  // Validate coupon
+  
   const couponData = coupons[normalizedCode];
 
   if (!couponData) {
     throw new ApiError(400, "Invalid or expired coupon code");
   }
 
-  // Apply coupon
+ 
   cart.coupon = {
     code: normalizedCode,
     discountType: couponData.discountType,
@@ -275,18 +272,18 @@ const updateCartItem = asyncHandler(async (request, response, next)=>{
   const { productId, quantity: newQuantity } = request.body
   const userId = request.user._id
 
-  // Start MongoDB Session and Transaction (to ensure atomic updates between product and cart)
+  
   const session = await mongoose.startSession()
   session.startTransaction()
   try {
-    // Find user cart with active session
+  
     const cart = await Cart.findOne({ user: userId }).session(session)
     if (!cart) {
       await session.abortTransaction()
       session.endSession()
       return sendResponse(response, 404, "Cart not found.")
     }
-    // Find cart item index
+  
     const itemIndex = findCartItemIndex(cart, productId);
     if (itemIndex === -1) {
       await session.abortTransaction()
@@ -297,7 +294,7 @@ const updateCartItem = asyncHandler(async (request, response, next)=>{
     const currentItem = cart.items[itemIndex]
     const oldQuantity = currentItem.quantity
 
-    // Find product with active session
+   
     const product = await Product.findById(productId).session(session)
     if (!product) {
       await session.abortTransaction()
@@ -305,14 +302,14 @@ const updateCartItem = asyncHandler(async (request, response, next)=>{
       return sendResponse(response, 404, "Product not found.")
     }
 
-    // Update stock and cart item quantity
+   
     updateProductStock(product, oldQuantity, newQuantity)
     currentItem.quantity = newQuantity
 
     await product.save({ session })
     await cart.save({ session })
 
-    // Commit transaction and end session
+   
     await session.commitTransaction()
     session.endSession()
 
@@ -325,13 +322,13 @@ const updateCartItem = asyncHandler(async (request, response, next)=>{
       items: cart.items
     })
   }catch (error) {
-    // Abort transaction on any failure
+    
     await session.abortTransaction()
     session.endSession()
     throw new ApiError(500, error.message || "Transaction failed")
   }
 })
-//#endregion
+
 
 
 
