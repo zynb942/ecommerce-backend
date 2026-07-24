@@ -4,8 +4,9 @@ const userRoutes = require("./routes/user.routes.js");
 const errorHandler = require("./middlewares/errorHandler.js");
 const cartRoutes = require("./routes/cart.routes");
 const productRoutes = require("./routes/product.routes");
-const wishlistRoutes = require("./routes/wishlist.routes");
+const wishlistRoutes = require("./routes/wishlist.routes.js");
 const orderRoutes = require("./routes/order.routes");
+
 
 
 const app = express();
