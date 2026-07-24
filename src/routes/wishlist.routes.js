@@ -2,7 +2,7 @@ const express = require("express");
 const { protect , allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
 const { productIdSchema } = require("../validation/wishlist.validation");
-const { addToWishlist, getMyWishlist, removeFromWishlist , getAllWishlists,clearWishlist  } = require("../controllers/wishlist.controller");
+const { addToWishlist, getMyWishlist, removeFromWishlist , getAllWishlists,clearWishlist , getWishlistStats   } = require("../controllers/wishlist.controller");
 const router = express.Router();
 
 
@@ -27,6 +27,9 @@ router.post(
 
 router.get("/admin/all", protect, allowTo("admin"), getAllWishlists);
 
+router.get('/admin/stats', protect, allowTo('admin'), getWishlistStats)
+
 router.get("/my", protect, getMyWishlist);
+
 
 module.exports = router;
