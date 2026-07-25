@@ -7,11 +7,12 @@ const productRoutes = require("./routes/product.routes");
 const wishlistRoutes = require("./routes/wishlist.routes.js");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
-
+const webhookRoutes = require('./routes/webhook.routes.js')
 
 
 const app = express();
 
+app.use('/api/payments', webhookRoutes) // it must be here before express.json() to prevent converting the Request Body into Object then failed the checking of Signature
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);   
