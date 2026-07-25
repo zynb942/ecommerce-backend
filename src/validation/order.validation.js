@@ -53,7 +53,43 @@ const createOrderSchema = Joi.object({
     "string.max": "Customer note cannot exceed 1000 characters",
   }),
 });
+const getAllOrdersSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+
+  limit: Joi.number().integer().min(1).default(10),
+
+  status: Joi.string().valid(
+    "pending",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "returned"
+  ),
+
+  paymentStatus: Joi.string().valid(
+    "pending",
+    "paid",
+    "failed",
+    "refunded"
+  ),
+
+  from: Joi.date(),
+
+  to: Joi.date(),
+
+  sortBy: Joi.string().valid(
+    "createdAt",
+    "totalPrice",
+    "status",
+    "paymentStatus"
+  ),
+
+  sortDir: Joi.string().valid("asc", "desc"),
+});
 
 module.exports = {
   createOrderSchema,
+  getAllOrdersSchema,
 };
