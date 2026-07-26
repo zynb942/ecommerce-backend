@@ -45,7 +45,8 @@ const createOrderSchema = Joi.object({
     .required()
     .messages({
       "string.base": "Payment method must be a string",
-      "any.only": "Payment method must be one of [cash, stripe, paypal, paymob]",
+      "any.only":
+        "Payment method must be one of [cash, stripe, paypal, paymob]",
     }),
 
   customerNote: Joi.string().trim().max(1000).allow("").optional().messages({
@@ -54,6 +55,28 @@ const createOrderSchema = Joi.object({
   }),
 });
 
+const updateOrderStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid(
+      "pending",
+      "confirmed",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "returned",
+    )
+    .messages({
+      "string.base": "The status must be a string",
+      "any.only":
+        "Status must be one of [pending,confirmed,processing,shipped,delivered,cancelled,returned,] ",
+    }),
+  adminNote: Joi.string().messages({
+    "string.base": "AdminNote must be a string",
+  }),
+});
+
 module.exports = {
   createOrderSchema,
+  updateOrderStatusSchema,
 };

@@ -38,7 +38,6 @@ const createOrder = asyncHandler(async (req, res) => {
     const subtotal = Number(cart.subtotal.toFixed(2));
     const discount = cart.discountAmount || 0;
 
-   
     const shippingFee = subtotal >= 1000 ? 0 : 50;
     const tax = Number((subtotal * 0.14).toFixed(2));
 
@@ -65,7 +64,6 @@ const createOrder = asyncHandler(async (req, res) => {
       ],
       { session },
     );
-
 
     cart.items = [];
     cart.coupon = null;
@@ -187,8 +185,82 @@ const getMyOrders = asyncHandler(async (req, res) => {
     orders,
   });
 });
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const orderId = req.params.id;
+  const { status, adminNote } = req.body.body;
+  const validStatuses = [
+    "pending",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "returned",
+  ];
+
+  const previousStatus = status;
+
+  const order = await Order.findById(orderId).populate("user");
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+  if (adminNote) {
+    order.adminNote = adminNote;
+  }
+  if (status && validStatuses.includes(status)) {
+    order.status = status;
+    if (status === "delivered") {
+      order.deliveredAt = new Date();
+    }
+    if (status === "cancelled") {
+      order.cancelledAt = new Date();
+    }
+  }
+
+  await order.save();
+
+  if (
+    status &&
+    validateStatuses.includes(status) &&
+    previousStatus !== status
+  ) {
+    const email = order.user?.email;
+    if (email) {
+      const emailHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h2>Order Status Updated</h2>
+          <p>Hello <strong>${recipientName}</strong>,</p>
+          <p>Your order <strong>#${order._id}</strong> status has been updated to: <span style="text-transform: capitalize; font-weight: bold; color: #007bff;">${order.status}</span>.</p>
+          
+          ${
+            adminNote
+              ? `<p><strong>Note from seller:</strong> ${adminNote}</p>`
+              : ""
+          }
+
+          <p>Thank you for shopping with us!</p>
+        </div>`;
+    }
+    try {
+      await sendEmail({
+        to: email,
+        subject: `Order ${order._id} Status Update: ${order.status.toUpperCase()}`,
+        html: emailHtml,
+      });
+    } catch (err) {
+      console.error(
+        "Update Order status email confirmation failed: ",
+        err.message,
+      );
+    }
+  }
+  return sendResponse(res, 200, "Order status updated successfully", {
+    order,
+  });
+});
 
 module.exports = {
   getMyOrders,
   createOrder,
+  updateOrderStatus,
 };
