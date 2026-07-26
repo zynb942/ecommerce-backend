@@ -5,6 +5,7 @@ const errorHandler = require("./middlewares/errorHandler.js");
 const cartRoutes = require("./routes/cart.routes");
 const productRoutes = require("./routes/product.routes");
 const wishlistRoutes = require("./routes/wishlist.routes.js");
+// orderRoutes is not defined in this file.
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const webhookRoutes = require('./routes/webhook.routes.js')
