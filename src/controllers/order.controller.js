@@ -188,7 +188,92 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Cancel Order by Current User
+ * @route   PATCH /api/orders/my/:id/cancel
+ * @access  Private
+ */
+const cancelMyOrder = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    }).session(session);
+
+    if (!order) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new ApiError(404, "Order not found");
+    }
+
+    if (!["pending", "confirmed"].includes(order.status)) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new ApiError(400, "Cannot cancel order in current status");
+    }
+
+    for (const item of order.items) {
+      if (item.product) {
+        await Product.findByIdAndUpdate(
+          item.product,
+          {
+            $inc: {
+              stock: item.quantity,
+            },
+          },
+          { session }
+        );
+      }
+    }
+
+    order.status = "cancelled";
+    order.cancelledAt = new Date();
+
+    await order.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    try {
+      await sendEmail({
+        to: req.user.email,
+        subject: `Order Cancelled - #${order._id}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+            <h2>Order Cancelled</h2>
+            <p>Hello <strong>${req.user.username}</strong>,</p>
+            <p>Your order <strong>#${order._id}</strong> has been cancelled successfully.</p>
+            <p>If you did not request this cancellation, please contact support immediately.</p>
+            <br/>
+            <p>Thank you,</p>
+            <p><strong>E-Commerce Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Cancellation email failed:", emailError.message);
+    }
+
+    return sendResponse(res, 200, "Order cancelled successfully", {
+      order,
+    });
+
+  } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    throw error;
+  } finally {
+    session.endSession();
+  }
+});
+
 module.exports = {
   getMyOrders,
   createOrder,
+  cancelMyOrder,  
 };
