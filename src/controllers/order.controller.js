@@ -199,44 +199,47 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
   try {
     session.startTransaction();
 
-    const order = await Order.findOne({
+    const order = await Order.findOneAndUpdate({
       _id: req.params.id,
       user: req.user._id,
-    }).session(session);
+      status: {
+      $in: ["pending", "confirmed"],
+    },
+  },
+  {
+    $set: {
+      status: "cancelled",
+      cancelledAt: new Date(),
+    },
+  },
+{
+    new: true,
+    session,
+  }
+    );
 
     if (!order) {
-      await session.abortTransaction();
-      session.endSession();
       throw new ApiError(404, "Order not found");
-    }
-
-    if (!["pending", "confirmed"].includes(order.status)) {
-      await session.abortTransaction();
-      session.endSession();
-      throw new ApiError(400, "Cannot cancel order in current status");
     }
 
     for (const item of order.items) {
       if (item.product) {
-        await Product.findByIdAndUpdate(
+        const product = await Product.findByIdAndUpdate(
           item.product,
           {
             $inc: {
               stock: item.quantity,
             },
           },
-          { session }
+         { new: true, session }
         );
+
+        if (!product) {
+  throw new ApiError(404, `Product not found: ${item.product}`);
+}
       }
     }
-
-    order.status = "cancelled";
-    order.cancelledAt = new Date();
-
-    await order.save({ session });
-
     await session.commitTransaction();
-    session.endSession();
 
     try {
       await sendEmail({
