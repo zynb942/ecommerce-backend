@@ -27,10 +27,9 @@ const getActiveCarts = asyncHandler(async (req, res) => {
   const totalPages = Math.ceil(total / limit);
 
   const formattedCarts = carts.map((cart) => ({
-    id: cart._id,
+    _id: cart._id,
     user: cart.user
       ? {
-          id: cart.user._id,
           username: cart.user.username,
           email: cart.user.email,
         }
