@@ -188,7 +188,23 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+const getAdminOrderById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const order = await Order.findById(id).populate("user", "username email");
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return sendResponse(res, 200, "Order retrieved successfully", {
+    order,
+  });
+});
+
 module.exports = {
   getMyOrders,
   createOrder,
+  getAdminOrderById,
+
 };
