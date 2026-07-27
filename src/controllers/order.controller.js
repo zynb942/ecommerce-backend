@@ -222,9 +222,8 @@ const createOrder = asyncHandler(async (req, res) => {
           </td>
         </tr>
 
-        ${
-          order.discount > 0
-            ? `
+        ${order.discount > 0
+      ? `
               <tr>
                 <td style="padding: 4px 0; color: green;">
                   <strong>Discount:</strong>
@@ -235,8 +234,8 @@ const createOrder = asyncHandler(async (req, res) => {
                 </td>
               </tr>
             `
-            : ""
-        }
+      : ""
+    }
 
         <tr style="border-top: 2px solid #333;">
 
@@ -322,23 +321,39 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
   try {
     session.startTransaction();
 
+    const existingOrder = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    }).session(session);
+
+    if (!existingOrder) {
+      throw new ApiError(404, "Order not found");
+    }
+
+    if (!["pending", "confirmed"].includes(existingOrder.status)) {
+      throw new ApiError(
+        400,
+        "Cannot cancel order in current status"
+      );
+    }
+
     const order = await Order.findOneAndUpdate({
       _id: req.params.id,
       user: req.user._id,
       status: {
-      $in: ["pending", "confirmed"],
+        $in: ["pending", "confirmed"],
+      },
     },
-  },
-  {
-    $set: {
-      status: "cancelled",
-      cancelledAt: new Date(),
-    },
-  },
-{
-    new: true,
-    session,
-  }
+      {
+        $set: {
+          status: "cancelled",
+          cancelledAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        session,
+      }
     );
 
     if (!order) {
@@ -354,12 +369,12 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
               stock: item.quantity,
             },
           },
-         { new: true, session }
+          { new: true, session }
         );
 
         if (!product) {
-  throw new ApiError(404, `Product not found: ${item.product}`);
-}
+          throw new ApiError(404, `Product not found: ${item.product}`);
+        }
       }
     }
     await session.commitTransaction();
@@ -401,5 +416,5 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
 module.exports = {
   getMyOrders,
   createOrder,
-  cancelMyOrder,  
+  cancelMyOrder,
 };
