@@ -9,7 +9,7 @@ const { getOrdersByStatusPipeline, getRevenueStatsPipeline, getTopProductsPipeli
  * @description Get Admin Dashboard Analytics & Statistics
  * @route GET /api/orders/admin/dashboard
  * @access PRIVATE (Admin only)
- * @returns { Object } SON response containing complete admin dashboard statistics and analytics
+ * @returns { Object } JSON response containing complete admin dashboard statistics and analytics
  */
 const getAdminDashboard = asyncHandler(async(request, response)=>{
   const now = new Date()
