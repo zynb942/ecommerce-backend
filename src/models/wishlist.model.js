@@ -20,11 +20,10 @@ const wishlistSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-wishlistSchema.pre(/^find/, function (next) {
+wishlistSchema.pre(/^find/, function () {
   this.populate({
     path: "products",
   });
 
-  next();
 });
 module.exports = mongoose.model("Wishlist", wishlistSchema);
