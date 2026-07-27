@@ -1,13 +1,17 @@
 const express = require("express");
 const router = express.Router();
-
-const { createOrder, getMyOrders } = require("../controllers/order.controller");
+const { createOrder , getMyOrders , getAllOrders , cancelMyOrder} = require("../controllers/order.controller");
 const { getActiveCarts } = require("../controllers/admin-cart.controller");
-const { protect, allowTo } = require("../middlewares/auth.middleware");
+const { protect , allowTo } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validation.middleware");
-const { createOrderSchema } = require("../validation/order.validation");
+const { createOrderSchema , getAllOrdersSchema} = require("../validation/order.validation");
 
 router.get("/my", protect, getMyOrders);
+
+router.get("/admin" , protect , allowTo("admin") ,validate(getAllOrdersSchema , "query") , getAllOrders);
+
+router.patch("/my/:id/cancel", protect, cancelMyOrder);
+
 router.post("/", protect, validate(createOrderSchema, "body"), createOrder);
 router.get("/admin/carts", protect, allowTo("admin"), getActiveCarts);
 
