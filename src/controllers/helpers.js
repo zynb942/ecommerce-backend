@@ -114,6 +114,115 @@ const updateProductStock = (product, oldQuantity, newQuantity) => {
 //#endregion
 
 
+//#region Admin Dashboard helper
+
+/**
+ * Builds the aggregation pipeline that groups orders by their status
+ * and returns the total number of orders for each status
+ * @returns { Array } MongoDB aggregation pipeline
+ */
+const getOrdersByStatusPipeline = () => [
+  {
+    $group: { _id: "$status", count: { $sum: 1 } }
+  }
+]
+
+/**
+ * Builds the aggregation pipeline for revenue analytics
+ * Calculates: Total revenue & Revenue for the current month & Revenue for the previous month
+ * @param { Date } startOfThisMonth Start date of the current month
+ * @param { Date } startOfLastMonth Start date of the previous month
+ * @param { Date } endOfLastMonth End date of the previous month
+ * @returns { Array } MongoDB aggregation pipeline
+ */
+const getRevenueStatsPipeline = (startOfThisMonth, startOfLastMonth, endOfLastMonth) 
+=> [
+  { $match: { paymentStatus: "paid" } },
+  {
+    $group: {
+      _id: null, 
+      totalRevenue: { $sum: "$totalPrice" },
+      thisMonthRevenue: { $sum: { $cond: [{ $gte: ["$createdAt", startOfThisMonth] }, "$totalPrice", 0]}},
+      lastMonthRevenue: {
+        $sum: { 
+          $cond: [
+            { 
+              $and: [
+                { $gte: ["$createdAt", startOfLastMonth] }, 
+                { $lte: ["$createdAt", endOfLastMonth] }
+              ]
+            }, 
+          "$totalPrice", 0
+        ]}
+      }
+    }
+  }
+]
+
+/**
+ * Builds the aggregation pipeline that retrieves the top-selling
+ * products based on quantity sold and total revenue generated
+ * @returns { Array } MongoDB aggregation pipeline
+ */
+const getTopProductsPipeline = () => [
+  { $unwind: "$cartItems" },
+  {
+    $group: {
+      _id: "$cartItems.product",
+      totalSold: { $sum: "$cartItems.quantity" },
+      revenue: {  $sum: { $multiply: ["$cartItems.quantity", "$cartItems.price"]}}
+    }
+  },
+  { $sort: { totalSold: -1 } },
+  { $limit: 5 },
+  {
+    $lookup: {
+      from: "products",
+      localField: "_id",
+      foreignField: "_id",
+      as: "productDetails"
+    }
+  },
+  { $unwind: "$productDetails" },
+  {
+    $project: {
+      _id: "$productDetails._id",
+      name: "$productDetails.title",
+      image: "$productDetails.imageCover",
+      totalSold: 1,
+      revenue: 1
+    }
+  }
+]
+
+/**
+ * Builds the aggregation pipeline that calculates daily revenue
+ * and order count for the last seven days
+ * @param { Date } sevenDaysAgo The starting date for the last 7-day period
+ * @returns { Array } MongoDB aggregation pipeline
+ */
+const getDailyRevenuePipeline = (sevenDaysAgo) => [
+  {
+    $match: {
+      paymentStatus: "paid",
+      createdAt: { $gte: sevenDaysAgo }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        $dateToString: {
+          format: "%Y-%m-%d",
+          date: "$createdAt"
+        }
+      },
+      revenue: { $sum: "$totalPrice" },
+      orders: { $sum: 1 }
+    }
+  },
+  { $sort: { _id: 1 } }
+]
+//#endregion
 
 module.exports = {
   getSortQuery,
@@ -122,5 +231,9 @@ module.exports = {
   addTagsFilter,
   addPriceFilter,
   findCartItemIndex,
-  updateProductStock
+  updateProductStock,
+  getOrdersByStatusPipeline,
+  getRevenueStatsPipeline,
+  getTopProductsPipeline,
+  getDailyRevenuePipeline
 }
