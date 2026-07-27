@@ -310,6 +310,63 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+const getAllOrders = asyncHandler(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    status,
+    paymentStatus,
+    from,
+    to,
+    sortBy = "createdAt",
+    sortDir = "desc",
+  } = req.query;
+
+  const { currentPage, limitPerPage, skip } = getPagination(page, limit);
+
+  const filter = {};
+
+  if (status) {
+    filter.status = status;
+  }
+
+  if (paymentStatus) {
+    filter.paymentStatus = paymentStatus;
+  }
+
+  if (from || to) {
+    filter.createdAt = {};
+
+    if (from) {
+      filter.createdAt.$gte = new Date(from);
+    }
+
+    if (to) {
+      const endDate = new Date(to);
+      endDate.setHours(23, 59, 59, 999);
+      filter.createdAt.$lte = endDate;
+    }
+  }
+
+  const sort = {
+    [sortBy]: sortDir === "asc" ? 1 : -1,
+  };
+
+  const [total, orders] = await Promise.all([
+  Order.countDocuments(filter),
+  Order.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limitPerPage),
+]);
+  return sendResponse(res, 200, "Orders retrieved successfully", {
+    total,
+    currentPage,
+    totalPages: Math.ceil(total / limitPerPage),
+    orders,
+  });
+});
+
 /**
  * @desc    Cancel Order by Current User
  * @route   PATCH /api/orders/my/:id/cancel
@@ -416,5 +473,6 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
 module.exports = {
   getMyOrders,
   createOrder,
+  getAllOrders,
   cancelMyOrder,
 };
