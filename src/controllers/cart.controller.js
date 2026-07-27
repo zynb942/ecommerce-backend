@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
-
+const {findCartItemIndex,updateProductStock} = require("./helpers")
 const ApiError = require("../utils/apiError");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
