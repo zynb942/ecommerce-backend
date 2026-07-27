@@ -75,9 +75,9 @@ const getAllOrdersSchema = Joi.object({
     "refunded"
   ),
 
-  from: Joi.date(),
+ from: Joi.date().iso(),
 
-  to: Joi.date(),
+to: Joi.date().iso(),
 
   sortBy: Joi.string().valid(
     "createdAt",

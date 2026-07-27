@@ -230,14 +230,12 @@ const getAllOrders = asyncHandler(async (req, res) => {
   };
 
   const [total, orders] = await Promise.all([
-    Order.countDocuments(filter),
-    Order.find(filter)
-      .populate("user", "username email")
-      .sort(sort)
-      .skip(skip)
-      .limit(limitPerPage),
-  ]);
-
+  Order.countDocuments(filter),
+  Order.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limitPerPage),
+]);
   return sendResponse(res, 200, "Orders retrieved successfully", {
     total,
     currentPage,
