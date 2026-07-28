@@ -66,6 +66,7 @@ const updateOrderStatusSchema = Joi.object({
       "cancelled",
       "returned",
     )
+    .required()
     .messages({
       "string.base": "The status must be a string",
       "any.only":

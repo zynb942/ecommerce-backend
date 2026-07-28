@@ -190,11 +190,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   const orderId = req.params.id;
   const { status, adminNote } = req.body;
 
-  const previousStatus = order.status;
-
-  const order = await Order.findById(orderId).populate;
+  const order = await Order.findById(orderId);
   const user = await User.findById(order.user);
 
+  const previousStatus = order.status;
   if (!order) {
     throw new ApiError(404, "Order not found");
   }
@@ -214,7 +213,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   await order.save();
 
   if (status && previousStatus !== status) {
-    const email = order.user?.email;
+    const email = user?.email;
     if (email) {
       const emailHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>Order Status Updated</h2>
