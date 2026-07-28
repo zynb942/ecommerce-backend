@@ -10,7 +10,6 @@ const connectionDB = require("./database/connection");
 
 const PORT = _config.port || 5000;
 
-// start the db connection automatically when server run
 connectionDB()
 
 app.listen(PORT, () => {
