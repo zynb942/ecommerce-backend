@@ -24,10 +24,8 @@ const {
   reviewIdSchema,
 } = require("../validation/product.validation");
 
-// Public Route
 router.get("/", getAllProducts);
 
-// GET /products/search
 router.get("/search", searchProducts);
 
 router.get(

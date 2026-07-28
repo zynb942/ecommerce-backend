@@ -81,9 +81,11 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  if (!req.user._id.equals(id)) {
-    throw new ApiError(403, "You are not allowed to delete this profile");
+
+   if (req.user._id.equals(id)) {
+    throw new ApiError(403, "Admin cannot delete their own account");
   }
+ 
   const user = await User.findById(id);
 
   if (!user) {
