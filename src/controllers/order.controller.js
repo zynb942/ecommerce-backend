@@ -310,6 +310,24 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+
+const getMyOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const order = await Order.findOne({
+    _id: id,
+    user: req.user._id,
+  });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return sendResponse(res, 200, "Order retrieved successfully", {
+    order,
+  });
+});
+
 const getAllOrders = asyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -472,6 +490,7 @@ const cancelMyOrder = asyncHandler(async (req, res) => {
 
 module.exports = {
   getMyOrders,
+  getMyOrderById,
   createOrder,
   getAllOrders,
   cancelMyOrder,
