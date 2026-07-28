@@ -7,6 +7,7 @@ const { getPagination } = require("./helpers");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");
+const User = require("../models/user.model");
 
 /**
  * @desc    Place a new Order from current User's active Cart
@@ -186,12 +187,14 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 const updateOrderStatus = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
   const orderId = req.params.id;
   const { status, adminNote } = req.body;
 
   const previousStatus = order.status;
 
   const order = await Order.findById(orderId).populate;
+  const user = await User.findById(userId);
 
   if (!order) {
     throw new ApiError(404, "Order not found");
@@ -216,7 +219,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     if (email) {
       const emailHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>Order Status Updated</h2>
-          <p>Hello <strong>${email}</strong>,</p>
+          <p>Hello <strong>${user.username}</strong>,</p>
           <p>Your order <strong>#${order._id}</strong> status has been updated to: <span style="text-transform: capitalize; font-weight: bold; color: #007bff;">${order.status}</span>.</p>
           
           ${
