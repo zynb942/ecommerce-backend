@@ -7,6 +7,7 @@ const { getPagination } = require("./helpers");
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/sendResponse");
 const sendEmail = require("../utils/sendEmail");
+const User = require("../models/user.model");
 
 /**
  * @desc    Place a new Order from current User's active Cart
@@ -309,6 +310,69 @@ const getMyOrders = asyncHandler(async (req, res) => {
     orders,
   });
 });
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const orderId = req.params.id;
+  const { status, adminNote } = req.body;
+
+  const order = await Order.findById(orderId);
+  
+   if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+  
+  const user = await User.findById(order.user);
+
+  const previousStatus = order.status;
+ 
+  if (adminNote !== undefined) {
+    order.adminNote = adminNote;
+  }
+  if (status) {
+    order.status = status;
+    if (status === "delivered") {
+      order.deliveredAt = new Date();
+    }
+    if (status === "cancelled") {
+      order.cancelledAt = new Date();
+    }
+  }
+
+  await order.save();
+
+  if (status && previousStatus !== status) {
+    const email = user?.email;
+    if (email) {
+      const emailHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+          <h2>Order Status Updated</h2>
+          <p>Hello <strong>${user.username}</strong>,</p>
+          <p>Your order <strong>#${order._id}</strong> status has been updated to: <span style="text-transform: capitalize; font-weight: bold; color: #007bff;">${order.status}</span>.</p>
+          
+          ${
+            adminNote
+              ? `<p><strong>Note from seller:</strong> ${adminNote}</p>`
+              : ""
+          }
+
+          <p>Thank you for shopping with us!</p>
+        </div>`;
+    }
+    try {
+      await sendEmail({
+        to: email,
+        subject: `Order ${order._id} Status Update: ${order.status.toUpperCase()}`,
+        html: emailHtml,
+      });
+    } catch (err) {
+      console.error(
+        "Update Order status email confirmation failed: ",
+        err.message,
+      );
+    }
+  }
+  return sendResponse(res, 200, "Order status updated successfully", {
+    order,
+  });
+});
 
 const getAdminOrderById = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
@@ -505,6 +569,7 @@ module.exports = {
   getMyOrders,
   getMyOrderById,
   createOrder,
+  updateOrderStatus,
   getAdminOrderById,
   getAllOrders,
   cancelMyOrder,
