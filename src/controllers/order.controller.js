@@ -187,14 +187,13 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 const updateOrderStatus = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
   const orderId = req.params.id;
   const { status, adminNote } = req.body;
 
   const previousStatus = order.status;
 
   const order = await Order.findById(orderId).populate;
-  const user = await User.findById(userId);
+  const user = await User.findById(order.user);
 
   if (!order) {
     throw new ApiError(404, "Order not found");
