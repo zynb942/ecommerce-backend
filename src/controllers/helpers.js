@@ -165,12 +165,12 @@ const getRevenueStatsPipeline = (startOfThisMonth, startOfLastMonth, endOfLastMo
  * @returns { Array } MongoDB aggregation pipeline
  */
 const getTopProductsPipeline = () => [
-  { $unwind: "$cartItems" },
+  { $unwind: "$items" },
   {
     $group: {
-      _id: "$cartItems.product",
-      totalSold: { $sum: "$cartItems.quantity" },
-      revenue: {  $sum: { $multiply: ["$cartItems.quantity", "$cartItems.price"]}}
+      _id: "$items.product",
+      totalSold: { $sum: "$items.quantity" },
+      revenue: {  $sum: { $multiply: ["$items.quantity", "$items.price"]}}
     }
   },
   { $sort: { totalSold: -1 } },
@@ -205,6 +205,7 @@ const getDailyRevenuePipeline = (sevenDaysAgo) => [
   {
     $match: {
       paymentStatus: "paid",
+      status: { $nin: ["cancelled", "returned"] },
       createdAt: { $gte: sevenDaysAgo }
     }
   },

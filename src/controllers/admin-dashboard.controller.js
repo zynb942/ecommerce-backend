@@ -17,8 +17,9 @@ const getAdminDashboard = asyncHandler(async(request, response)=>{
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() -1, 1)
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
 
-  const weekAgo = new Date()
-  weekAgo.setDate(weekAgo.getDate() - 7)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
 
   const [  totalOrdersCount, ordersByStatusRaw, revenueStatsRaw, recentOrders, 
     topProducts, dailyRevenue, totalCustomers] = await Promise.all([
@@ -35,16 +36,14 @@ const getAdminDashboard = asyncHandler(async(request, response)=>{
     ),
     Order.find()
       .sort({ createdAt: -1 })
-      .limit(5)
-      .select("user totalPrice paymentStatus status createdAt")
-      .populate("user", "name email"),
+      .limit(5),
     Order.aggregate(
       getTopProductsPipeline()
     ),
     Order.aggregate(
-      getDailyRevenuePipeline(weekAgo)
+      getDailyRevenuePipeline(sevenDaysAgo)
     ),
-    User.countDocuments({ role: "user" })
+    User.countDocuments({ role: "customer" })
   ])
 
   // Format order statistics
