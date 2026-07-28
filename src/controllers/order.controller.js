@@ -310,6 +310,19 @@ const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+const getAdminOrderById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const order = await Order.findById(id);
+  
+   if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return sendResponse(res, 200, "Order retrieved successfully", {
+    order,
+  });
+});
 
 const getMyOrderById = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -492,6 +505,7 @@ module.exports = {
   getMyOrders,
   getMyOrderById,
   createOrder,
+  getAdminOrderById,
   getAllOrders,
   cancelMyOrder,
 };
