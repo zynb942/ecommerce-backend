@@ -71,8 +71,9 @@ const updateOrderStatusSchema = Joi.object({
       "any.only":
         "Status must be one of [pending,confirmed,processing,shipped,delivered,cancelled,returned,] ",
     }),
-  adminNote: Joi.string().messages({
+  adminNote: Joi.string().trim().max(1000).optional().messages({
     "string.base": "AdminNote must be a string",
+    "string.max": "you cannot write more than 1000 words.",
   }),
 });
 

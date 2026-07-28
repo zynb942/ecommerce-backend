@@ -187,28 +187,19 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const orderId = req.params.id;
-  const { status, adminNote } = req.body.body;
-  const validStatuses = [
-    "pending",
-    "confirmed",
-    "processing",
-    "shipped",
-    "delivered",
-    "cancelled",
-    "returned",
-  ];
+  const { status, adminNote } = req.body;
 
-  const previousStatus = status;
+  const previousStatus = order.status;
 
-  const order = await Order.findById(orderId).populate("user");
+  const order = await Order.findById(orderId).populate;
 
   if (!order) {
     throw new ApiError(404, "Order not found");
   }
-  if (adminNote) {
+  if (adminNote !== undefined) {
     order.adminNote = adminNote;
   }
-  if (status && validStatuses.includes(status)) {
+  if (status) {
     order.status = status;
     if (status === "delivered") {
       order.deliveredAt = new Date();
@@ -220,16 +211,12 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
-  if (
-    status &&
-    validateStatuses.includes(status) &&
-    previousStatus !== status
-  ) {
+  if (status && previousStatus !== status) {
     const email = order.user?.email;
     if (email) {
       const emailHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>Order Status Updated</h2>
-          <p>Hello <strong>${recipientName}</strong>,</p>
+          <p>Hello <strong>${email}</strong>,</p>
           <p>Your order <strong>#${order._id}</strong> status has been updated to: <span style="text-transform: capitalize; font-weight: bold; color: #007bff;">${order.status}</span>.</p>
           
           ${
