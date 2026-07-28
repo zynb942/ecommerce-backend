@@ -9,19 +9,14 @@ const router = express.Router();
 
 
 
-// Get current user's cart
 router.get("/", protect, getCart);
 
-// Cart items
 router.post("/items", protect, validate(addToCartSchema), addItemToCart);
-  // PATCH /carts/items
 router.patch('/items', protect, validate(updateCartItemSchema), updateCartItem)
 router.delete("/items/:productId", protect, validate(cartProductIdSchema, "params"), removeCartItem);
 
-//ClearCart
 router.delete("/clear", protect, clearCart);
 
-// coupon
 router.post( "/coupon", protect, validate(applyCouponSchema), applyCoupon);
 router.delete("/coupon", protect, removeCoupon);
 

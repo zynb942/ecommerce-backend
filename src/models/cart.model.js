@@ -68,9 +68,6 @@ const cartSchema = new mongoose.Schema(
     }
 );
 
-// =============================================
-// 1. Virtual: subtotal
-// =============================================
 cartSchema.virtual('subtotal').get(function () {
     if (!this.items || this.items.length === 0) return 0;
 
@@ -79,9 +76,6 @@ cartSchema.virtual('subtotal').get(function () {
     }, 0);
 });
 
-// =============================================
-// 2. Virtual: discountAmount
-// =============================================
 cartSchema.virtual('discountAmount').get(function () {
     if (!this.coupon || !this.coupon.code) return 0;
 
@@ -99,16 +93,10 @@ cartSchema.virtual('discountAmount').get(function () {
     return 0;
 });
 
-// =============================================
-// 3. Virtual: total
-// =============================================
 cartSchema.virtual('total').get(function () {
     return Math.max(0, this.subtotal - this.discountAmount);
 });
 
-// =============================================
-// 4. Virtual: itemCount
-// =============================================
 cartSchema.virtual('itemCount').get(function () {
     if (!this.items || this.items.length === 0) return 0;
 
