@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs")
 
-// Sub-schema for user addresses
 const addressSchema = new mongoose.Schema(
     {
         fullName: String,
@@ -16,7 +15,6 @@ const addressSchema = new mongoose.Schema(
     }
 );
 
-// main user schema definition
 const userSchema = new mongoose.Schema(
     {
         username: {
@@ -42,7 +40,7 @@ const userSchema = new mongoose.Schema(
 
         avatar: {
             type: String,
-            default: "حط هنا مسار الصورة الافتراضية بعد منعمل upload للصور",
+            default: "https://res.cloudinary.com/no625vlt/image/upload/v1785078789/Screenshot_2026-07-26_181048_mzehzd.png",
         },
 
         role: {
@@ -75,7 +73,6 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-// Mongoose pre-save middleware to hash the password before saving to the database
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) {
         return;
@@ -84,13 +81,12 @@ userSchema.pre("save", async function () {
 });
 
 
-// method to check and compare input password with the hashed password in the database
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
 
-// Create the User model from the defined schema
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
