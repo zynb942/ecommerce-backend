@@ -22,11 +22,11 @@ const _config = {
   
   JWT_SECRET:process.env.JWT_SECRET,
   JWT_EXPIRE: process.env.JWT_EXPIRE,
-
+  
   // Cloudinary
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
 
   // Stripe
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,

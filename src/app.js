@@ -8,7 +8,7 @@ const wishlistRoutes = require("./routes/wishlist.routes.js");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const webhookRoutes = require('./routes/webhook.routes.js')
-
+const adminDashboardRoutes = require('./routes/admin-dashboard.routes.js')
 
 const app = express();
 
@@ -22,6 +22,7 @@ app.use("/api/carts", cartRoutes);
 app.use("/api/wishlists", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use('/api/orders/admin', adminDashboardRoutes)
 app.use(errorHandler);
 module.exports = app;
 
