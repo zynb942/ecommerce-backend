@@ -136,25 +136,30 @@ const getOrdersByStatusPipeline = () => [
  * @param { Date } endOfLastMonth End date of the previous month
  * @returns { Array } MongoDB aggregation pipeline
  */
-const getRevenueStatsPipeline = (startOfThisMonth, startOfLastMonth, endOfLastMonth) 
-=> [
-  { $match: { paymentStatus: "paid" } },
+const getRevenueStatsPipeline = (startOfThisMonth, startOfLastMonth, endOfLastMonth) => [
+  {
+    $match: {
+      paymentStatus: "paid",
+      status: { $nin: ["cancelled", "returned"] },
+    }
+  },
   {
     $group: {
-      _id: null, 
+      _id: null,
       totalRevenue: { $sum: "$totalPrice" },
-      thisMonthRevenue: { $sum: { $cond: [{ $gte: ["$createdAt", startOfThisMonth] }, "$totalPrice", 0]}},
+      thisMonthRevenue: { $sum: { $cond: [{ $gte: ["$createdAt", startOfThisMonth] }, "$totalPrice", 0] } },
       lastMonthRevenue: {
-        $sum: { 
+        $sum: {
           $cond: [
-            { 
+            {
               $and: [
-                { $gte: ["$createdAt", startOfLastMonth] }, 
+                { $gte: ["$createdAt", startOfLastMonth] },
                 { $lte: ["$createdAt", endOfLastMonth] }
               ]
-            }, 
-          "$totalPrice", 0
-        ]}
+            },
+            "$totalPrice", 0
+          ]
+        }
       }
     }
   }
@@ -166,12 +171,18 @@ const getRevenueStatsPipeline = (startOfThisMonth, startOfLastMonth, endOfLastMo
  * @returns { Array } MongoDB aggregation pipeline
  */
 const getTopProductsPipeline = () => [
+  {
+    $match: {
+      paymentStatus: "paid",
+      status: { $nin: ["cancelled", "returned"] },
+    }
+  },
   { $unwind: "$items" },
   {
     $group: {
       _id: "$items.product",
       totalSold: { $sum: "$items.quantity" },
-      revenue: {  $sum: { $multiply: ["$items.quantity", "$items.price"]}}
+      revenue: { $sum: { $multiply: ["$items.quantity", "$items.price"] } }
     }
   },
   { $sort: { totalSold: -1 } },
@@ -188,8 +199,8 @@ const getTopProductsPipeline = () => [
   {
     $project: {
       _id: "$productDetails._id",
-      name: "$productDetails.title",
-      image: "$productDetails.imageCover",
+      name: "$productDetails.name",
+      image: "$productDetails.images[0]",
       totalSold: 1,
       revenue: 1
     }
