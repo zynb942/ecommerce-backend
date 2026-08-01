@@ -11,7 +11,7 @@ const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const webhookRoutes = require('./routes/webhook.routes.js')
 const adminDashboardRoutes = require('./routes/admin-dashboard.routes.js')
-
+const connectionDB = require("./database/connection");
 const app = express();
 
 app.use('/api/payments', webhookRoutes) // it must be here before express.json() to prevent converting the Request Body into Object then failed the checking of Signature
@@ -26,6 +26,15 @@ app.use(
 
 app.use(cookieParser());
 
+app.use(async (req, res, next) => {
+    try {
+        await connectionDB();
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
@@ -35,6 +44,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use('/api/orders/admin', adminDashboardRoutes)
 app.use(errorHandler);
+
+
 module.exports = app;
 
 
