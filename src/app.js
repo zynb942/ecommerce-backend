@@ -1,4 +1,6 @@
 const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.routes.js");
 const userRoutes = require("./routes/user.routes.js");
 const errorHandler = require("./middlewares/errorHandler.js");
@@ -14,8 +16,17 @@ const app = express();
 
 app.use('/api/payments', webhookRoutes) // it must be here before express.json() to prevent converting the Request Body into Object then failed the checking of Signature
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+    cors({
+        origin: true,
+        credentials: true,
+    })
+);
 
-app.use("/api/auth", authRoutes);   
+app.use(cookieParser());
+
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/carts", cartRoutes);

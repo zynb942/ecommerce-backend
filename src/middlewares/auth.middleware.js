@@ -7,11 +7,24 @@ const _config = require("../config/env");
 const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  let token;
+
+  if (req.cookies?.accessToken) {
+    token = req.cookies.accessToken;
+  }
+
+  if (
+    !token &&
+    authHeader &&
+    authHeader.startsWith("Bearer ")
+  ) {
+    token = authHeader.split(" ")[1];
+  }
+
+  if (!token) {
     throw new ApiError(401, "Unauthorized, no token provided");
   }
 
-  const token = authHeader.split(" ")[1];
 
   let decoded;
 

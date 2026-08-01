@@ -18,34 +18,34 @@ const generateOTP = () => crypto.randomInt(100000, 999999).toString();
  * @param { import('express').Response } response Express response object
  * @param { import('express').NextFunction } next Express next function
  */
-const resetPassword = asyncHandler(async(request, response, next) =>{
+const resetPassword = asyncHandler(async (request, response, next) => {
   const { email, otp, newPassword } = request.body
 
   const otpDocument = await OTP.findOne({ email })
-  if(!otpDocument){
+  if (!otpDocument) {
     throw new ApiError(400, 'Invalid or expired OTP code')
   }
 
 
-  if(otpDocument.expiresAt < new Date()) {
+  if (otpDocument.expiresAt < new Date()) {
     await OTP.deleteOne({ _id: otpDocument._id })
     throw new ApiError(400, "OTP has expired");
   }
-  
-  
+
+
   const isMatch = await bcrypt.compare(otp, otpDocument.otp)
-  if(!isMatch) {
+  if (!isMatch) {
     throw new ApiError(400, 'Invalid or expired OTP code')
-  } 
+  }
 
   const user = await User.findOne({ email })
-  if(!user) {
+  if (!user) {
     throw new ApiError(404, 'User not found')
   }
   user.password = newPassword
   await user.save()
 
- 
+
   await OTP.deleteOne({ _id: otpDocument._id })
 
   return sendResponse(response, 200, 'Password reset successfully')
@@ -135,6 +135,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 const logout = asyncHandler(async (req, res, next) => {
+  res.clearCookie("accessToken");
   return sendResponse(res, 200, "Logged out successfully");
 });
 
@@ -155,10 +156,10 @@ const changeRole = asyncHandler(async (req, res, next) => {
   const oldRole = user.role;
   user.role = role;
 
-  
+
   await user.save();
 
-  
+
   try {
     await sendEmail({
       to: user.email,
@@ -171,9 +172,9 @@ const changeRole = asyncHandler(async (req, res, next) => {
     console.error("Email notification failed to send:", error.message);
   }
 
-  
-  return sendResponse(res, 200, `User role updated successfully to ${role}`, {user});
-  
+
+  return sendResponse(res, 200, `User role updated successfully to ${role}`, { user });
+
 });
 
 
@@ -187,13 +188,13 @@ const verifyOTP = asyncHandler(async (req, res, next) => {
   }
 
   if (otpDoc.expiresAt < new Date()) {
-        await OTP.deleteMany({ email }); 
-        throw new ApiError(400, "OTP has expired");
-    }
+    await OTP.deleteMany({ email });
+    throw new ApiError(400, "OTP has expired");
+  }
 
-    if (!otpDoc.userData) {
-        throw new ApiError(400, "Invalid OTP data");
-    }
+  if (!otpDoc.userData) {
+    throw new ApiError(400, "Invalid OTP data");
+  }
 
   const isMatch = await bcrypt.compare(otp, otpDoc.otp);
 
@@ -202,12 +203,12 @@ const verifyOTP = asyncHandler(async (req, res, next) => {
   }
 
   const user = await User.create({
-  ...otpDoc.userData,
-  isVerified: true,
-});
+    ...otpDoc.userData,
+    isVerified: true,
+  });
 
   await OTP.deleteMany({ email });
-  
+
   return sendResponse(res, 201, "User registered and verified successfully", { user });
 });
 
@@ -237,14 +238,23 @@ const login = asyncHandler(async (req, res) => {
   const token = jwt.sign(
     {
       id: user._id,
-      
+
     },
-      _config.JWT_SECRET, 
+    _config.JWT_SECRET,
     {
       expiresIn: _config.JWT_EXPIRE,
     }
   );
-const userData = user.toObject();
+
+  res.cookie("accessToken", token, {
+    httpOnly: true,
+    secure: _config.NODE_ENV === "production",
+    sameSite:
+      _config.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  const userData = user.toObject();
   delete userData.password;
   return sendResponse(res, 200, "Login successful", {
     token,
@@ -252,7 +262,7 @@ const userData = user.toObject();
   });
 });
 
-module.exports = { 
+module.exports = {
   sendRegisterOTP,
   verifyOTP,
   login,
