@@ -10,6 +10,7 @@ const {
   resetPassword,
   adminTest,
   changeRole,
+  getMe,
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validation.middleware");
@@ -37,6 +38,8 @@ router.post("/forgot-password/verify-otp", validate(resetPasswordSchema), resetP
 router.post("/logout", protect, logout);
 
 router.post("/login", validate(loginSchema), login);
+
+router.get("/me", protect, getMe);
 
 // ==================== Protected Admin Routes ====================
 

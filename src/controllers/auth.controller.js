@@ -262,6 +262,18 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
+const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return sendResponse(res, 200, "User profile retrieved successfully", {
+    user,
+  });
+});
+
 module.exports = {
   sendRegisterOTP,
   verifyOTP,
@@ -270,6 +282,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   adminTest,
-  changeRole
+  changeRole,
+  getMe
 };
 
